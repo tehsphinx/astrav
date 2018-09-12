@@ -19,6 +19,7 @@ type Node interface {
 	AstNode() ast.Node
 	Walk(f func(node Node) bool)
 	Parents() []Node
+	Contains(node Node) bool
 
 	setRealMe(node Node)
 }
@@ -74,6 +75,16 @@ func (s *baseNode) Parents() []Node {
 	return append([]Node{s.parent}, s.parent.Parents()...)
 }
 
+//Contains checks if a node contains another node
+func (s *baseNode) Contains(node Node) bool {
+	for _, p := range node.Parents() {
+		if p == s.realMe {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *baseNode) setRealMe(node Node) {
 	s.realMe = node
 }
@@ -85,7 +96,6 @@ func (s *baseNode) build() {
 	s.built = true
 
 	ast.Walk(s, s.Node)
-	// todo: build child elements form ast.Node
 }
 
 //Visit implements the ast.Visitor interface and is used to walk the underlying ast.Node tree
