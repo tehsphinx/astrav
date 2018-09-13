@@ -18,7 +18,7 @@ func TestNew(t *testing.T) {
 	file, ok := n.(*File)
 
 	assert.True(t, ok)
-	assert.Equal(t, f, file.Node)
+	assert.Equal(t, f, file.node)
 }
 
 func TestBaseNode_AstNode(t *testing.T) {
@@ -119,6 +119,21 @@ func TestBaseNode_Walk(t *testing.T) {
 		}
 		return corrIndex
 	})
+}
+
+func TestBaseNode_ChildByName(t *testing.T) {
+	n := getTree(t)
+
+	f := n.ChildByName("Score")
+	assert.Equal(t, "Score", f.(*FuncDecl).Name.Name)
+}
+
+func TestBaseNode_SubNodesByType(t *testing.T) {
+	t.Fail()
+}
+
+func TestBaseNode_IsType(t *testing.T) {
+	t.Fail()
 }
 
 func getTree(t *testing.T) Node {
