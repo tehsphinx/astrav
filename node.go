@@ -2,11 +2,12 @@ package astrav
 
 import (
 	"go/ast"
+	"reflect"
 )
 
 //New creates a new node
 func New(node ast.Node) Node {
-	return creator(baseNode{Node: node})
+	return creator(baseNode{node: node})
 }
 
 //Node wraps a ast.Node with helpful traversal functions
@@ -20,12 +21,15 @@ type Node interface {
 	Walk(f func(node Node) bool)
 	Parents() []Node
 	Contains(node Node) bool
+	ChildByName(name string) Node
+	SubNodesByType(nodeType NodeType) []Node
+	IsType(nodeType NodeType) bool
 
 	setRealMe(node Node)
 }
 
 type baseNode struct {
-	ast.Node
+	node ast.Node
 
 	realMe   Node
 	parent   Node
@@ -52,7 +56,7 @@ func (s *baseNode) Level() int {
 
 //AstNode returns the original ast.Node
 func (s *baseNode) AstNode() ast.Node {
-	return s.Node
+	return s.node
 }
 
 //Walk traverses the tree and its children.
@@ -85,6 +89,36 @@ func (s *baseNode) Contains(node Node) bool {
 	return false
 }
 
+//ChildByName retrieves a node among the direkt children by name (only nodes that have a name)
+func (s baseNode) ChildByName(name string) Node {
+	for _, child := range s.Children() {
+		if f, ok := child.(Named); ok {
+			ident := f.Ident()
+			if ident != nil && ident.Name == name {
+				return child
+			}
+		}
+	}
+	return nil
+}
+
+//SubNodesByType returns all sub nodes of a certain types. sub nodes are all nodes in the current node.
+func (s baseNode) SubNodesByType(nodeType NodeType) []Node {
+	var nodes []Node
+	for _, child := range s.Children() {
+		if child.IsType(nodeType) {
+			nodes = append(nodes, child)
+		}
+		nodes = append(nodes, child.SubNodesByType(nodeType)...)
+	}
+	return nodes
+}
+
+//IsType checks if node is of given node type
+func (s baseNode) IsType(nodeType NodeType) bool {
+	return reflect.TypeOf(s.realMe).Name() == string(nodeType)
+}
+
 func (s *baseNode) setRealMe(node Node) {
 	s.realMe = node
 }
@@ -95,7 +129,7 @@ func (s *baseNode) build() {
 	}
 	s.built = true
 
-	ast.Walk(s, s.Node)
+	ast.Walk(s, s.node)
 }
 
 //Visit implements the ast.Visitor interface and is used to walk the underlying ast.Node tree
@@ -103,12 +137,12 @@ func (s *baseNode) Visit(node ast.Node) ast.Visitor {
 	if node == nil {
 		return nil
 	}
-	if node == s.Node {
+	if node == s.node {
 		return s
 	}
 
 	n := creator(baseNode{
-		Node:   node,
+		node:   node,
 		parent: s.realMe,
 		level:  s.level + 1,
 	})
