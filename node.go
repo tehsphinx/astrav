@@ -102,6 +102,11 @@ func (s baseNode) ChildByName(name string) Node {
 	return nil
 }
 
+//IsType checks if node is of given node type
+func (s baseNode) IsType(nodeType NodeType) bool {
+	return reflect.TypeOf(s.realMe).String() == string(nodeType)
+}
+
 //SubNodesByType returns all sub nodes of a certain types. sub nodes are all nodes in the current node.
 func (s baseNode) SubNodesByType(nodeType NodeType) []Node {
 	var nodes []Node
@@ -112,11 +117,6 @@ func (s baseNode) SubNodesByType(nodeType NodeType) []Node {
 		nodes = append(nodes, child.SubNodesByType(nodeType)...)
 	}
 	return nodes
-}
-
-//IsType checks if node is of given node type
-func (s baseNode) IsType(nodeType NodeType) bool {
-	return reflect.TypeOf(s.realMe).Name() == string(nodeType)
 }
 
 func (s *baseNode) setRealMe(node Node) {

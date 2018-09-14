@@ -128,12 +128,26 @@ func TestBaseNode_ChildByName(t *testing.T) {
 	assert.Equal(t, "Score", f.(*FuncDecl).Name.Name)
 }
 
-func TestBaseNode_SubNodesByType(t *testing.T) {
-	t.Fail()
+func TestBaseNode_IsType(t *testing.T) {
+	n := getTree(t)
+
+	assert.True(t, n.IsType(NodeType(reflect.TypeOf(n).String())))
+
+	for _, child := range n.Children() {
+		tName := reflect.TypeOf(child).String()
+		assert.False(t, n.IsType(NodeType(tName)))
+		assert.True(t, child.IsType(NodeType(tName)))
+	}
 }
 
-func TestBaseNode_IsType(t *testing.T) {
-	t.Fail()
+func TestBaseNode_SubNodesByType(t *testing.T) {
+	n := getTree(t)
+
+	sn := n.SubNodesByType(NodeTypeSwitchStmt)
+	assert.Equal(t, 1, len(sn))
+	if _, ok := sn[0].(*SwitchStmt); !ok {
+		t.Fail()
+	}
 }
 
 func getTree(t *testing.T) Node {
