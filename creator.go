@@ -19,115 +19,115 @@ func sw(bNode baseNode) Node {
 
 	switch n := bNode.node.(type) {
 	case *ast.Comment:
-		return &Comment{Comment: *n, baseNode: bNode}
+		return &Comment{Comment: n, baseNode: bNode}
 	case *ast.CommentGroup:
-		return &CommentGroup{CommentGroup: *n, baseNode: bNode}
+		return &CommentGroup{CommentGroup: n, baseNode: bNode}
 	case *ast.Field:
-		return &Field{Field: *n, baseNode: bNode}
+		return &Field{Field: n, baseNode: bNode}
 	case *ast.FieldList:
-		return &FieldList{FieldList: *n, baseNode: bNode}
+		return &FieldList{FieldList: n, baseNode: bNode}
 	case *ast.BadExpr:
-		return &BadExpr{BadExpr: *n, baseNode: bNode}
+		return &BadExpr{BadExpr: n, baseNode: bNode}
 	case *ast.Ident:
-		return &Ident{Ident: *n, baseNode: bNode}
+		return &Ident{Ident: n, baseNode: bNode}
 	case *ast.Ellipsis:
-		return &Ellipsis{Ellipsis: *n, baseNode: bNode}
+		return &Ellipsis{Ellipsis: n, baseNode: bNode}
 	case *ast.BasicLit:
-		return &BasicLit{BasicLit: *n, baseNode: bNode}
+		return &BasicLit{BasicLit: n, baseNode: bNode}
 	case *ast.FuncLit:
-		return &FuncLit{FuncLit: *n, baseNode: bNode}
+		return &FuncLit{FuncLit: n, baseNode: bNode}
 	case *ast.CompositeLit:
-		return &CompositeLit{CompositeLit: *n, baseNode: bNode}
+		return &CompositeLit{CompositeLit: n, baseNode: bNode}
 	case *ast.ParenExpr:
-		return &ParenExpr{ParenExpr: *n, baseNode: bNode}
+		return &ParenExpr{ParenExpr: n, baseNode: bNode}
 	case *ast.SelectorExpr:
-		return &SelectorExpr{SelectorExpr: *n, baseNode: bNode}
+		return &SelectorExpr{SelectorExpr: n, baseNode: bNode}
 	case *ast.IndexExpr:
-		return &IndexExpr{IndexExpr: *n, baseNode: bNode}
+		return &IndexExpr{IndexExpr: n, baseNode: bNode}
 	case *ast.SliceExpr:
-		return &SliceExpr{SliceExpr: *n, baseNode: bNode}
+		return &SliceExpr{SliceExpr: n, baseNode: bNode}
 	case *ast.TypeAssertExpr:
-		return &TypeAssertExpr{TypeAssertExpr: *n, baseNode: bNode}
+		return &TypeAssertExpr{TypeAssertExpr: n, baseNode: bNode}
 	case *ast.CallExpr:
-		return &CallExpr{CallExpr: *n, baseNode: bNode}
+		return &CallExpr{CallExpr: n, baseNode: bNode}
 	case *ast.StarExpr:
-		return &StarExpr{StarExpr: *n, baseNode: bNode}
+		return &StarExpr{StarExpr: n, baseNode: bNode}
 	case *ast.UnaryExpr:
-		return &UnaryExpr{UnaryExpr: *n, baseNode: bNode}
+		return &UnaryExpr{UnaryExpr: n, baseNode: bNode}
 	case *ast.BinaryExpr:
-		return &BinaryExpr{BinaryExpr: *n, baseNode: bNode}
+		return &BinaryExpr{BinaryExpr: n, baseNode: bNode}
 	case *ast.KeyValueExpr:
-		return &KeyValueExpr{KeyValueExpr: *n, baseNode: bNode}
+		return &KeyValueExpr{KeyValueExpr: n, baseNode: bNode}
 	case *ast.ArrayType:
-		return &ArrayType{ArrayType: *n, baseNode: bNode}
+		return &ArrayType{ArrayType: n, baseNode: bNode}
 	case *ast.StructType:
-		return &StructType{StructType: *n, baseNode: bNode}
+		return &StructType{StructType: n, baseNode: bNode}
 	case *ast.FuncType:
-		return &FuncType{FuncType: *n, baseNode: bNode}
+		return &FuncType{FuncType: n, baseNode: bNode}
 	case *ast.InterfaceType:
-		return &InterfaceType{InterfaceType: *n, baseNode: bNode}
+		return &InterfaceType{InterfaceType: n, baseNode: bNode}
 	case *ast.MapType:
-		return &MapType{MapType: *n, baseNode: bNode}
+		return &MapType{MapType: n, baseNode: bNode}
 	case *ast.ChanType:
-		return &ChanType{ChanType: *n, baseNode: bNode}
+		return &ChanType{ChanType: n, baseNode: bNode}
 	case *ast.BadStmt:
-		return &BadStmt{BadStmt: *n, baseNode: bNode}
+		return &BadStmt{BadStmt: n, baseNode: bNode}
 	case *ast.DeclStmt:
-		return &DeclStmt{DeclStmt: *n, baseNode: bNode}
+		return &DeclStmt{DeclStmt: n, baseNode: bNode}
 	case *ast.EmptyStmt:
-		return &EmptyStmt{EmptyStmt: *n, baseNode: bNode}
+		return &EmptyStmt{EmptyStmt: n, baseNode: bNode}
 	case *ast.LabeledStmt:
-		return &LabeledStmt{LabeledStmt: *n, baseNode: bNode}
+		return &LabeledStmt{LabeledStmt: n, baseNode: bNode}
 	case *ast.ExprStmt:
-		return &ExprStmt{ExprStmt: *n, baseNode: bNode}
+		return &ExprStmt{ExprStmt: n, baseNode: bNode}
 	case *ast.SendStmt:
-		return &SendStmt{SendStmt: *n, baseNode: bNode}
+		return &SendStmt{SendStmt: n, baseNode: bNode}
 	case *ast.IncDecStmt:
-		return &IncDecStmt{IncDecStmt: *n, baseNode: bNode}
+		return &IncDecStmt{IncDecStmt: n, baseNode: bNode}
 	case *ast.AssignStmt:
-		return &AssignStmt{AssignStmt: *n, baseNode: bNode}
+		return &AssignStmt{AssignStmt: n, baseNode: bNode}
 	case *ast.GoStmt:
-		return &GoStmt{GoStmt: *n, baseNode: bNode}
+		return &GoStmt{GoStmt: n, baseNode: bNode}
 	case *ast.DeferStmt:
-		return &DeferStmt{DeferStmt: *n, baseNode: bNode}
+		return &DeferStmt{DeferStmt: n, baseNode: bNode}
 	case *ast.ReturnStmt:
-		return &ReturnStmt{ReturnStmt: *n, baseNode: bNode}
+		return &ReturnStmt{ReturnStmt: n, baseNode: bNode}
 	case *ast.BranchStmt:
-		return &BranchStmt{BranchStmt: *n, baseNode: bNode}
+		return &BranchStmt{BranchStmt: n, baseNode: bNode}
 	case *ast.BlockStmt:
-		return &BlockStmt{BlockStmt: *n, baseNode: bNode}
+		return &BlockStmt{BlockStmt: n, baseNode: bNode}
 	case *ast.IfStmt:
-		return &IfStmt{IfStmt: *n, baseNode: bNode}
+		return &IfStmt{IfStmt: n, baseNode: bNode}
 	case *ast.CaseClause:
-		return &CaseClause{CaseClause: *n, baseNode: bNode}
+		return &CaseClause{CaseClause: n, baseNode: bNode}
 	case *ast.SwitchStmt:
-		return &SwitchStmt{SwitchStmt: *n, baseNode: bNode}
+		return &SwitchStmt{SwitchStmt: n, baseNode: bNode}
 	case *ast.TypeSwitchStmt:
-		return &TypeSwitchStmt{TypeSwitchStmt: *n, baseNode: bNode}
+		return &TypeSwitchStmt{TypeSwitchStmt: n, baseNode: bNode}
 	case *ast.CommClause:
-		return &CommClause{CommClause: *n, baseNode: bNode}
+		return &CommClause{CommClause: n, baseNode: bNode}
 	case *ast.SelectStmt:
-		return &SelectStmt{SelectStmt: *n, baseNode: bNode}
+		return &SelectStmt{SelectStmt: n, baseNode: bNode}
 	case *ast.ForStmt:
-		return &ForStmt{ForStmt: *n, baseNode: bNode}
+		return &ForStmt{ForStmt: n, baseNode: bNode}
 	case *ast.RangeStmt:
-		return &RangeStmt{RangeStmt: *n, baseNode: bNode}
+		return &RangeStmt{RangeStmt: n, baseNode: bNode}
 	case *ast.ImportSpec:
-		return &ImportSpec{ImportSpec: *n, baseNode: bNode}
+		return &ImportSpec{ImportSpec: n, baseNode: bNode}
 	case *ast.ValueSpec:
-		return &ValueSpec{ValueSpec: *n, baseNode: bNode}
+		return &ValueSpec{ValueSpec: n, baseNode: bNode}
 	case *ast.TypeSpec:
-		return &TypeSpec{TypeSpec: *n, baseNode: bNode}
+		return &TypeSpec{TypeSpec: n, baseNode: bNode}
 	case *ast.BadDecl:
-		return &BadDecl{BadDecl: *n, baseNode: bNode}
+		return &BadDecl{BadDecl: n, baseNode: bNode}
 	case *ast.GenDecl:
-		return &GenDecl{GenDecl: *n, baseNode: bNode}
+		return &GenDecl{GenDecl: n, baseNode: bNode}
 	case *ast.FuncDecl:
-		return &FuncDecl{FuncDecl: *n, baseNode: bNode}
+		return &FuncDecl{FuncDecl: n, baseNode: bNode}
 	case *ast.File:
-		return &File{File: *n, baseNode: bNode}
+		return &File{File: n, baseNode: bNode}
 	case *ast.Package:
-		return &Package{Package: *n, baseNode: bNode}
+		return &Package{Package: n, baseNode: bNode}
 	default:
 		log.Printf("astrav: not implemented ast.Node type found: %T\n", n)
 	}

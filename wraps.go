@@ -4,330 +4,330 @@ import "go/ast"
 
 //Comment wraps ast.Comment
 type Comment struct {
-	ast.Comment
+	*ast.Comment
 	baseNode
 }
 
 //CommentGroup wraps ast.Comment
 type CommentGroup struct {
-	ast.CommentGroup
+	*ast.CommentGroup
 	baseNode
 }
 
 //Field wraps ast.Comment
 type Field struct {
-	ast.Field
+	*ast.Field
 	baseNode
 }
 
 //FieldList wraps ast.Comment
 type FieldList struct {
-	ast.FieldList
+	*ast.FieldList
 	baseNode
 }
 
 //BadExpr wraps ast.Comment
 type BadExpr struct {
-	ast.BadExpr
+	*ast.BadExpr
 	baseNode
 }
 
 //Ident wraps ast.Comment
 type Ident struct {
-	ast.Ident
+	*ast.Ident
 	baseNode
 }
 
 //Ellipsis wraps ast.Comment
 type Ellipsis struct {
-	ast.Ellipsis
+	*ast.Ellipsis
 	baseNode
 }
 
 //BasicLit wraps ast.Comment
 type BasicLit struct {
-	ast.BasicLit
+	*ast.BasicLit
 	baseNode
 }
 
 //FuncLit wraps ast.Comment
 type FuncLit struct {
-	ast.FuncLit
+	*ast.FuncLit
 	baseNode
 }
 
 //CompositeLit wraps ast.Comment
 type CompositeLit struct {
-	ast.CompositeLit
+	*ast.CompositeLit
 	baseNode
 }
 
 //ParenExpr wraps ast.Comment
 type ParenExpr struct {
-	ast.ParenExpr
+	*ast.ParenExpr
 	baseNode
 }
 
 //SelectorExpr wraps ast.Comment
 type SelectorExpr struct {
-	ast.SelectorExpr
+	*ast.SelectorExpr
 	baseNode
 }
 
 //IndexExpr wraps ast.Comment
 type IndexExpr struct {
-	ast.IndexExpr
+	*ast.IndexExpr
 	baseNode
 }
 
 //SliceExpr wraps ast.Comment
 type SliceExpr struct {
-	ast.SliceExpr
+	*ast.SliceExpr
 	baseNode
 }
 
 //TypeAssertExpr wraps ast.Comment
 type TypeAssertExpr struct {
-	ast.TypeAssertExpr
+	*ast.TypeAssertExpr
 	baseNode
 }
 
 //CallExpr wraps ast.Comment
 type CallExpr struct {
-	ast.CallExpr
+	*ast.CallExpr
 	baseNode
 }
 
 //StarExpr wraps ast.Comment
 type StarExpr struct {
-	ast.StarExpr
+	*ast.StarExpr
 	baseNode
 }
 
 //UnaryExpr wraps ast.Comment
 type UnaryExpr struct {
-	ast.UnaryExpr
+	*ast.UnaryExpr
 	baseNode
 }
 
 //BinaryExpr wraps ast.Comment
 type BinaryExpr struct {
-	ast.BinaryExpr
+	*ast.BinaryExpr
 	baseNode
 }
 
 //KeyValueExpr wraps ast.Comment
 type KeyValueExpr struct {
-	ast.KeyValueExpr
+	*ast.KeyValueExpr
 	baseNode
 }
 
 //ArrayType wraps ast.Comment
 type ArrayType struct {
-	ast.ArrayType
+	*ast.ArrayType
 	baseNode
 }
 
 //StructType wraps ast.Comment
 type StructType struct {
-	ast.StructType
+	*ast.StructType
 	baseNode
 }
 
 //FuncType wraps ast.Comment
 type FuncType struct {
-	ast.FuncType
+	*ast.FuncType
 	baseNode
 }
 
 //InterfaceType wraps ast.Comment
 type InterfaceType struct {
-	ast.InterfaceType
+	*ast.InterfaceType
 	baseNode
 }
 
 //MapType wraps ast.Comment
 type MapType struct {
-	ast.MapType
+	*ast.MapType
 	baseNode
 }
 
 //ChanType wraps ast.Comment
 type ChanType struct {
-	ast.ChanType
+	*ast.ChanType
 	baseNode
 }
 
 //BadStmt wraps ast.Comment
 type BadStmt struct {
-	ast.BadStmt
+	*ast.BadStmt
 	baseNode
 }
 
 //DeclStmt wraps ast.Comment
 type DeclStmt struct {
-	ast.DeclStmt
+	*ast.DeclStmt
 	baseNode
 }
 
 //EmptyStmt wraps ast.Comment
 type EmptyStmt struct {
-	ast.EmptyStmt
+	*ast.EmptyStmt
 	baseNode
 }
 
 //LabeledStmt wraps ast.Comment
 type LabeledStmt struct {
-	ast.LabeledStmt
+	*ast.LabeledStmt
 	baseNode
 }
 
 //ExprStmt wraps ast.Comment
 type ExprStmt struct {
-	ast.ExprStmt
+	*ast.ExprStmt
 	baseNode
 }
 
 //SendStmt wraps ast.Comment
 type SendStmt struct {
-	ast.SendStmt
+	*ast.SendStmt
 	baseNode
 }
 
 //IncDecStmt wraps ast.Comment
 type IncDecStmt struct {
-	ast.IncDecStmt
+	*ast.IncDecStmt
 	baseNode
 }
 
 //AssignStmt wraps ast.Comment
 type AssignStmt struct {
-	ast.AssignStmt
+	*ast.AssignStmt
 	baseNode
 }
 
 //GoStmt wraps ast.Comment
 type GoStmt struct {
-	ast.GoStmt
+	*ast.GoStmt
 	baseNode
 }
 
 //DeferStmt wraps ast.Comment
 type DeferStmt struct {
-	ast.DeferStmt
+	*ast.DeferStmt
 	baseNode
 }
 
 //ReturnStmt wraps ast.Comment
 type ReturnStmt struct {
-	ast.ReturnStmt
+	*ast.ReturnStmt
 	baseNode
 }
 
 //BranchStmt wraps ast.Comment
 type BranchStmt struct {
-	ast.BranchStmt
+	*ast.BranchStmt
 	baseNode
 }
 
 //BlockStmt wraps ast.Comment
 type BlockStmt struct {
-	ast.BlockStmt
+	*ast.BlockStmt
 	baseNode
 }
 
 //IfStmt wraps ast.Comment
 type IfStmt struct {
-	ast.IfStmt
+	*ast.IfStmt
 	baseNode
 }
 
 //CaseClause wraps ast.Comment
 type CaseClause struct {
-	ast.CaseClause
+	*ast.CaseClause
 	baseNode
 }
 
 //SwitchStmt wraps ast.Comment
 type SwitchStmt struct {
-	ast.SwitchStmt
+	*ast.SwitchStmt
 	baseNode
 }
 
 //TypeSwitchStmt wraps ast.Comment
 type TypeSwitchStmt struct {
-	ast.TypeSwitchStmt
+	*ast.TypeSwitchStmt
 	baseNode
 }
 
 //CommClause wraps ast.Comment
 type CommClause struct {
-	ast.CommClause
+	*ast.CommClause
 	baseNode
 }
 
 //SelectStmt wraps ast.Comment
 type SelectStmt struct {
-	ast.SelectStmt
+	*ast.SelectStmt
 	baseNode
 }
 
 //ForStmt wraps ast.Comment
 type ForStmt struct {
-	ast.ForStmt
+	*ast.ForStmt
 	baseNode
 }
 
 //RangeStmt wraps ast.Comment
 type RangeStmt struct {
-	ast.RangeStmt
+	*ast.RangeStmt
 	baseNode
 }
 
 //ImportSpec wraps ast.Comment
 type ImportSpec struct {
-	ast.ImportSpec
+	*ast.ImportSpec
 	baseNode
 }
 
 //ValueSpec wraps ast.Comment
 type ValueSpec struct {
-	ast.ValueSpec
+	*ast.ValueSpec
 	baseNode
 }
 
 //TypeSpec wraps ast.Comment
 type TypeSpec struct {
-	ast.TypeSpec
+	*ast.TypeSpec
 	baseNode
 }
 
 //BadDecl wraps ast.Comment
 type BadDecl struct {
-	ast.BadDecl
+	*ast.BadDecl
 	baseNode
 }
 
 //GenDecl wraps ast.Comment
 type GenDecl struct {
-	ast.GenDecl
+	*ast.GenDecl
 	baseNode
 }
 
 //FuncDecl wraps ast.Comment
 type FuncDecl struct {
-	ast.FuncDecl
+	*ast.FuncDecl
 	baseNode
 }
 
 //File wraps ast.Comment
 type File struct {
-	ast.File
+	*ast.File
 	baseNode
 }
 
 //Package wraps ast.Comment
 type Package struct {
-	ast.Package
+	*ast.Package
 	baseNode
 }
