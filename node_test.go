@@ -128,25 +128,137 @@ func TestBaseNode_ChildByName(t *testing.T) {
 	assert.Equal(t, "Score", f.(*FuncDecl).Name.Name)
 }
 
+func TestBaseNode_FindFirstByName(t *testing.T) {
+	n := getTree(t)
+
+	f := n.FindFirstByName("Score")
+	assert.Equal(t, "Score", f.(*FuncDecl).Name.Name)
+
+	f = n.FindFirstByName("ToLower")
+	assert.Equal(t, "ToLower", f.(*SelectorExpr).Sel.Name)
+}
+
 func TestBaseNode_IsType(t *testing.T) {
 	n := getTree(t)
 
-	assert.True(t, n.IsType(NodeType(reflect.TypeOf(n).String())))
+	assert.True(t, n.IsNodeType(NodeType(reflect.TypeOf(n).String())))
 
 	for _, child := range n.Children() {
 		tName := reflect.TypeOf(child).String()
-		assert.False(t, n.IsType(NodeType(tName)))
-		assert.True(t, child.IsType(NodeType(tName)))
+		assert.False(t, n.IsNodeType(NodeType(tName)))
+		assert.True(t, child.IsNodeType(NodeType(tName)))
 	}
 }
 
-func TestBaseNode_SubNodesByType(t *testing.T) {
+func TestBaseNode_FindByType(t *testing.T) {
 	n := getTree(t)
 
-	sn := n.SubNodesByType(NodeTypeSwitchStmt)
+	sn := n.FindByNodeType(NodeTypeSwitchStmt)
 	assert.Equal(t, 1, len(sn))
 	if _, ok := sn[0].(*SwitchStmt); !ok {
 		t.Fail()
+	}
+}
+
+func TestBaseNode_FindByName(t *testing.T) {
+	n := getTree(t)
+
+	fns := n.FindByName("Score")
+	assert.Equal(t, 2, len(fns))
+	assert.Equal(t, "Score", fns[0].(*FuncDecl).Name.Name)
+
+	fns = n.FindByName("ToLower")
+	assert.Equal(t, 2, len(fns))
+	assert.Equal(t, "ToLower", fns[0].(*SelectorExpr).Sel.Name)
+
+	fns = n.FindFirstByName("Score").FindByName("c")
+	assert.Equal(t, 2, len(fns))
+	assert.Equal(t, "c", fns[0].(*Ident).Name)
+}
+
+func TestBaseNode_FindIdentByName(t *testing.T) {
+	n := getTree(t)
+
+	idents := n.FindIdentByName("Score")
+	assert.Equal(t, 1, len(idents))
+	assert.Equal(t, "Score", idents[0].Name)
+
+	idents = n.FindIdentByName("ToLower")
+	assert.Equal(t, 1, len(idents))
+	assert.Equal(t, "ToLower", idents[0].Name)
+
+	idents = n.FindFirstByName("Score").FindIdentByName("c")
+	assert.Equal(t, 2, len(idents))
+	assert.Equal(t, "c", idents[0].Name)
+}
+
+func TestBaseNode_FindFirstIdentByName(t *testing.T) {
+	n := getTree(t)
+
+	ident := n.FindFirstIdentByName("Score")
+	assert.Equal(t, "Score", ident.Name)
+
+	ident = n.FindFirstIdentByName("ToLower")
+	assert.Equal(t, "ToLower", ident.Name)
+
+	ident = n.FindFirstByName("Score").FindFirstIdentByName("c")
+	assert.Equal(t, "c", ident.Name)
+}
+
+func TestBaseNode_FindByValueType(t *testing.T) {
+	n := getTree(t)
+
+	nodes := n.FindByValueType("byte")
+	assert.Equal(t, 4, len(nodes))
+	for _, v := range nodes {
+		assert.Equal(t, "byte", v.ValueType().String())
+	}
+}
+
+func TestBaseNode_ValueType(t *testing.T) {
+	n := getTree(t)
+
+	v := n.FindFirstIdentByName("Score")
+	assert.Equal(t, "func(word string) int", v.ValueType().String())
+
+	v = n.FindFirstIdentByName("c")
+	assert.Equal(t, "byte", v.ValueType().String())
+}
+
+func TestBaseNode_IsValueType(t *testing.T) {
+	n := getTree(t)
+
+	var isTp bool
+	for _, v := range n.FindFirstByName("Score").FindByName("c") {
+		if v.IsValueType("byte") {
+			isTp = true
+		}
+	}
+	assert.True(t, true, isTp)
+}
+
+func TestBaseNode_IsNodeType(t *testing.T) {
+	n := getTree(t)
+
+	assert.True(t, n.IsNodeType(NodeTypeFile))
+}
+
+func TestBaseNode_FindByNodeType(t *testing.T) {
+	n := getTree(t)
+
+	nodes := n.FindByNodeType(NodeTypeFuncDecl)
+	for _, node := range nodes {
+		assert.True(t, node.IsNodeType(NodeTypeFuncDecl))
+	}
+}
+
+func TestBaseNode_IsContainedByType(t *testing.T) {
+	n := getTree(t)
+
+	child := n.FindFirstByName("c")
+
+	for _, node := range child.Parents() {
+		assert.True(t, child.IsContainedByType(NodeType(reflect.TypeOf(node).String())))
 	}
 }
 
@@ -161,5 +273,6 @@ func getFile(t *testing.T) ast.Node {
 	if err != nil {
 		t.Fatal(err)
 	}
+	ParseInfo(".", fs, []*ast.File{f})
 	return f
 }

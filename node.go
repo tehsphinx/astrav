@@ -2,6 +2,7 @@ package astrav
 
 import (
 	"go/ast"
+	"go/types"
 	"reflect"
 )
 
@@ -20,11 +21,21 @@ type Node interface {
 	AstNode() ast.Node
 	Walk(f func(node Node) bool)
 	Parents() []Node
+	IsContainedByType(nodeType NodeType) bool
 	Contains(node Node) bool
+	FindByName(name string) []Node
+	FindFirstByName(name string) Node
 	ChildByName(name string) Node
-	SubNodesByType(nodeType NodeType) []Node
-	IsType(nodeType NodeType) bool
+	FindIdentByName(name string) []*Ident
+	FindFirstIdentByName(name string) *Ident
+	FindByNodeType(nodeType NodeType) []Node
+	FindByValueType(valType string) []Node
+	IsNodeType(nodeType NodeType) bool
+	IsValueType(valType string) bool
+	ValueType() types.Type
+	Object() types.Object
 
+	findByName(name string, identOnly, firstOnly, childOnly bool) []Node
 	setRealMe(node Node)
 }
 
@@ -79,6 +90,17 @@ func (s *baseNode) Parents() []Node {
 	return append([]Node{s.parent}, s.parent.Parents()...)
 }
 
+//IsContainedByType checks if node is contained by a node of given node type
+func (s *baseNode) IsContainedByType(nodeType NodeType) bool {
+	if s.parent == nil {
+		return false
+	}
+	if s.parent.IsNodeType(nodeType) {
+		return true
+	}
+	return s.parent.IsContainedByType(nodeType)
+}
+
 //Contains checks if a node contains another node
 func (s *baseNode) Contains(node Node) bool {
 	for _, p := range node.Parents() {
@@ -89,34 +111,137 @@ func (s *baseNode) Contains(node Node) bool {
 	return false
 }
 
-//ChildByName retrieves a node among the direkt children by name (only nodes that have a name)
-func (s baseNode) ChildByName(name string) Node {
-	for _, child := range s.Children() {
-		if f, ok := child.(Named); ok {
-			ident := f.Ident()
-			if ident != nil && ident.Name == name {
-				return child
-			}
-		}
+//IsNodeType checks if node is of given node type
+func (s *baseNode) IsNodeType(nodeType NodeType) bool {
+	return reflect.TypeOf(s.realMe).String() == string(nodeType)
+}
+
+//FindByName looks for a name in the entire sub tree
+func (s *baseNode) FindByName(name string) []Node {
+	return s.findByName(name, false, false, false)
+}
+
+//FindFirstByName looks for a name in the entire sub tree. First node is returned if there are multiple.
+func (s *baseNode) FindFirstByName(name string) Node {
+	nodes := s.findByName(name, false, true, false)
+	for _, node := range nodes {
+		return node
 	}
 	return nil
 }
 
-//IsType checks if node is of given node type
-func (s baseNode) IsType(nodeType NodeType) bool {
-	return reflect.TypeOf(s.realMe).String() == string(nodeType)
+//FindIdentByName looks for Ident nodes in the entire sub tree with given name
+func (s *baseNode) FindIdentByName(name string) []*Ident {
+	nodes := s.findByName(name, true, false, false)
+	var idents []*Ident
+	for _, node := range nodes {
+		idents = append(idents, node.(*Ident))
+	}
+	return idents
 }
 
-//SubNodesByType returns all sub nodes of a certain types. sub nodes are all nodes in the current node.
-func (s baseNode) SubNodesByType(nodeType NodeType) []Node {
+//FindFirstIdentByName looks for the first Ident node in subtree with given name
+func (s *baseNode) FindFirstIdentByName(name string) *Ident {
+	nodes := s.findByName(name, true, false, false)
+	for _, node := range nodes {
+		return node.(*Ident)
+	}
+	return nil
+}
+
+//ChildByName retrieves a node among the direkt children by name (only nodes that have a name)
+func (s *baseNode) ChildByName(name string) Node {
+	nodes := s.findByName(name, false, true, true)
+	for _, node := range nodes {
+		return node
+	}
+	return nil
+}
+
+func (s *baseNode) findByName(name string, identOnly, firstOnly, childOnly bool) []Node {
 	var nodes []Node
 	for _, child := range s.Children() {
-		if child.IsType(nodeType) {
-			nodes = append(nodes, child)
+		valid := !identOnly
+		if _, ok := child.(*Ident); ok {
+			valid = true
 		}
-		nodes = append(nodes, child.SubNodesByType(nodeType)...)
+
+		if f, ok := child.(Named); ok {
+			ident := f.NodeName()
+			if ident != nil && ident.Name == name {
+				if valid {
+					nodes = append(nodes, child)
+					if firstOnly {
+						return nodes
+					}
+				}
+			}
+		}
+
+		if childOnly {
+			continue
+		}
+		if f := child.findByName(name, identOnly, firstOnly, childOnly); f != nil {
+			if firstOnly {
+				return f
+			}
+			nodes = append(nodes, f...)
+		}
 	}
 	return nodes
+}
+
+//FindByNodeType returns all sub nodes of a certain types. sub nodes are all nodes in the current node.
+func (s *baseNode) FindByNodeType(nodeType NodeType) []Node {
+	var nodes []Node
+	for _, child := range s.Children() {
+		if child.IsNodeType(nodeType) {
+			nodes = append(nodes, child)
+		}
+		nodes = append(nodes, child.FindByNodeType(nodeType)...)
+	}
+	return nodes
+}
+
+//FindByValueType find all nodes with given value type
+func (s *baseNode) FindByValueType(valType string) []Node {
+	var nodes []Node
+	for _, child := range s.Children() {
+		if child.IsValueType(valType) {
+			nodes = append(nodes, child)
+		}
+		nodes = append(nodes, child.FindByValueType(valType)...)
+	}
+	return nodes
+}
+
+//IsValueType checks if value type is of given type
+func (s *baseNode) IsValueType(valType string) bool {
+	if expr, ok := s.node.(ast.Expr); ok {
+		info.TypeOf(expr)
+		if t, ok := info.Types[expr]; ok {
+			if t.Type.String() == valType {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+//ValueType returns value type information of an expression, nil otherwise
+func (s *baseNode) ValueType() types.Type {
+	if expr, ok := s.node.(ast.Expr); ok {
+		return info.TypeOf(expr)
+	}
+	return nil
+}
+
+//Object returns the object of an identifier, nil otherwise
+func (s *baseNode) Object() types.Object {
+	if expr, ok := s.node.(*ast.Ident); ok {
+		return info.ObjectOf(expr)
+	}
+	return nil
 }
 
 func (s *baseNode) setRealMe(node Node) {

@@ -1,5 +1,39 @@
 package astrav
 
+import (
+	"go/ast"
+	"go/importer"
+	"go/token"
+	"go/types"
+)
+
+var (
+	info types.Info
+)
+
+//ParseInfo parses all files for type information which is then available
+// from the Nodes. When using Folder.ParseFolder, this is done automatically.
+func ParseInfo(path string, fSet *token.FileSet, files []*ast.File) (*types.Package, error) {
+	info = types.Info{
+		Types:      map[ast.Expr]types.TypeAndValue{},
+		Defs:       map[*ast.Ident]types.Object{},
+		Uses:       map[*ast.Ident]types.Object{},
+		Scopes:     map[ast.Node]*types.Scope{},
+		Implicits:  map[ast.Node]types.Object{},
+		Selections: map[*ast.SelectorExpr]*types.Selection{},
+	}
+	var conf = types.Config{
+		Importer: importer.Default(),
+	}
+
+	pkg, err := conf.Check(path, fSet, files, &info)
+	if err != nil {
+		return nil, err
+	}
+
+	return pkg, nil
+}
+
 //NodeType defines a node type string to search for type
 type NodeType string
 
