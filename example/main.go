@@ -34,10 +34,10 @@ func printTrees(fNode astrav.Node, f *ast.File) {
 		return true
 	})
 
-	fmt.Println("\n\n")
+	//fmt.Println("\n\n")
 
-	var v visitor
-	ast.Walk(v, f)
+	//var v visitor
+	//ast.Walk(v, f)
 }
 
 type visitor int
