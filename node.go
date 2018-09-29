@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/types"
 	"reflect"
+	"strings"
 )
 
 //New creates a new node
@@ -31,6 +32,7 @@ type Node interface {
 	FindFirstIdentByName(name string) *Ident
 	FindByNodeType(nodeType NodeType) []Node
 	FindByValueType(valType string) []Node
+	FindMaps() []Node
 	IsNodeType(nodeType NodeType) bool
 	NodeType() NodeType
 	IsValueType(valType string) bool
@@ -229,6 +231,19 @@ func (s *baseNode) FindByValueType(valType string) []Node {
 			nodes = append(nodes, child)
 		}
 		nodes = append(nodes, child.FindByValueType(valType)...)
+	}
+	return nodes
+}
+
+//FindMaps find all nodes with given value type
+func (s *baseNode) FindMaps() []Node {
+	var nodes []Node
+	for _, child := range s.Children() {
+		valueType := child.ValueType()
+		if valueType != nil && strings.HasPrefix(valueType.String(), "map") {
+			nodes = append(nodes, child)
+		}
+		nodes = append(nodes, child.FindMaps()...)
 	}
 	return nodes
 }
