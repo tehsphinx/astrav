@@ -6,6 +6,8 @@ import (
 	"go/token"
 	"go/types"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -21,6 +23,9 @@ func NewFolder(path string) *Folder {
 //Folder represents a go package folder
 type Folder struct {
 	path string
+
+	studentName string
+
 	FSet *token.FileSet
 	Pkgs map[string]*Package
 	Pkg  *types.Package
@@ -28,6 +33,8 @@ type Folder struct {
 
 //ParseFolder will parse all to files in folder. It skips test files.
 func (s *Folder) ParseFolder() (map[string]*Package, error) {
+	s.getStudentName()
+
 	pkgs, err := parser.ParseDir(s.FSet, s.path, func(info os.FileInfo) bool {
 		return !strings.HasSuffix(info.Name(), "_test.go")
 	}, parser.AllErrors)
@@ -47,6 +54,20 @@ func (s *Folder) ParseFolder() (map[string]*Package, error) {
 	return s.Pkgs, nil
 }
 
+var student = regexp.MustCompile("users/([^/]*)/go/")
+
+func (s *Folder) getStudentName() {
+	path, err := filepath.Abs(s.path)
+	if err != nil {
+		return
+	}
+
+	submatch := student.FindStringSubmatch(path)
+	if 1 < len(submatch) {
+		s.studentName = submatch[1]
+	}
+}
+
 func (s *Folder) getFiles() []*ast.File {
 	var files []*ast.File
 	for _, pkg := range s.Pkgs {
@@ -60,4 +81,9 @@ func (s *Folder) getFiles() []*ast.File {
 //Package returns a package by name
 func (s *Folder) Package(name string) *Package {
 	return s.Pkgs[name]
+}
+
+//StudentName returns the students name. ParseFolder has to be run before to parse students name from path.
+func (s *Folder) StudentName() string {
+	return s.studentName
 }
