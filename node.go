@@ -21,6 +21,7 @@ type Node interface {
 	AstNode() ast.Node
 	Walk(f func(node Node) bool)
 	Parents() []Node
+	NextParentByType(nodeType NodeType) Node
 	IsContainedByType(nodeType NodeType) bool
 	Contains(node Node) bool
 	FindByName(name string) []Node
@@ -31,6 +32,7 @@ type Node interface {
 	FindByNodeType(nodeType NodeType) []Node
 	FindByValueType(valType string) []Node
 	IsNodeType(nodeType NodeType) bool
+	NodeType() NodeType
 	IsValueType(valType string) bool
 	ValueType() types.Type
 	Object() types.Object
@@ -90,6 +92,17 @@ func (s *baseNode) Parents() []Node {
 	return append([]Node{s.parent}, s.parent.Parents()...)
 }
 
+//NextParentByType returns the next parent of given type
+func (s *baseNode) NextParentByType(nodeType NodeType) Node {
+	if s.parent == nil {
+		return nil
+	}
+	if s.parent.IsNodeType(nodeType) {
+		return s.parent
+	}
+	return s.parent.NextParentByType(nodeType)
+}
+
 //IsContainedByType checks if node is contained by a node of given node type
 func (s *baseNode) IsContainedByType(nodeType NodeType) bool {
 	if s.parent == nil {
@@ -114,6 +127,11 @@ func (s *baseNode) Contains(node Node) bool {
 //IsNodeType checks if node is of given node type
 func (s *baseNode) IsNodeType(nodeType NodeType) bool {
 	return reflect.TypeOf(s.realMe).String() == string(nodeType)
+}
+
+//NodeType returns the NodeType of the node
+func (s *baseNode) NodeType() NodeType {
+	return NodeType(reflect.TypeOf(s.realMe).String())
 }
 
 //FindByName looks for a name in the entire sub tree
