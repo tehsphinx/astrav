@@ -13,7 +13,7 @@ import (
 
 func TestNew(t *testing.T) {
 	f := getFile(t)
-	n := New(f)
+	n := NewNode(f)
 
 	file, ok := n.(*File)
 
@@ -23,7 +23,7 @@ func TestNew(t *testing.T) {
 
 func TestBaseNode_AstNode(t *testing.T) {
 	f := getFile(t)
-	n := New(f)
+	n := NewNode(f)
 
 	assert.Equal(t, f, n.AstNode())
 }
@@ -264,7 +264,7 @@ func TestBaseNode_IsContainedByType(t *testing.T) {
 
 func getTree(t *testing.T) Node {
 	f := getFile(t)
-	return New(f)
+	return NewNode(f)
 }
 
 func getFile(t *testing.T) ast.Node {

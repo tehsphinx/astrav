@@ -1,51 +1,40 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"go/ast"
-	"go/parser"
 	"go/token"
 	"log"
 	"strings"
 
 	"github.com/tehsphinx/astrav"
-	"github.com/tehsphinx/dbg"
+)
+
+var (
+	file = flag.String("file", "file_to_parse.go", "file to parse")
 )
 
 func main() {
+	flag.Parse()
+
 	fs := token.NewFileSet()
-	f, err := parser.ParseFile(fs, "file_to_parse.go", nil, parser.AllErrors)
+
+	fNode, err := astrav.NewFile(*file, fs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fNode := astrav.New(f)
-
-	printTrees(fNode, f)
+	printTrees(fNode)
 }
 
-func printTrees(fNode astrav.Node, f *ast.File) {
+func printTrees(fNode astrav.Node) {
 	fNode.Walk(func(node astrav.Node) bool {
-		dbg.Green(fmt.Sprintf("%s%T", strings.Repeat("\t", node.Level()), node))
+		fmt.Printf("%s%T\n", strings.Repeat("\t", node.Level()), node)
+		//dbg.Green(string(node.GetSource()))
 		//for _, p := range node.Parents() {
 		//	fmt.Printf("%T;", p)
 		//}
 		//fmt.Println("")
 		return true
 	})
-
-	//fmt.Println("\n\n")
-
-	//var v visitor
-	//ast.Walk(v, f)
-}
-
-type visitor int
-
-func (v visitor) Visit(n ast.Node) ast.Visitor {
-	if n == nil {
-		return nil
-	}
-	fmt.Printf("%s%T\n", strings.Repeat("\t", int(v)), n)
-	return v + 1
 }
