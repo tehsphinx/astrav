@@ -2,14 +2,37 @@ package astrav
 
 import (
 	"go/ast"
+	"go/token"
 	"go/types"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
-//New creates a new node
-func New(node ast.Node) Node {
+//NewNode creates a new node
+func NewNode(node ast.Node) Node {
 	return creator(baseNode{node: node})
+}
+
+//NewFileNode creates a new file node including raw content for regex searches. Use NewNode to create
+// a file without regex capabilities.
+func NewFileNode(node *ast.File, rawFile *RawFile) *File {
+	file := creator(baseNode{
+		node: node,
+	}).(*File)
+	file.rawFile = rawFile
+	return file
+}
+
+func newChild(node ast.Node, parent Node, parentLevel int) Node {
+	rawFile := parent.getRawFile(node)
+
+	return creator(baseNode{
+		node:    node,
+		parent:  parent,
+		level:   parentLevel + 1,
+		rawFile: rawFile,
+	})
 }
 
 //Node wraps a ast.Node with helpful traversal functions
@@ -38,9 +61,11 @@ type Node interface {
 	IsValueType(valType string) bool
 	ValueType() types.Type
 	Object() types.Object
+	GetSource() []byte
 
 	findByName(name string, identOnly, firstOnly, childOnly bool) []Node
 	setRealMe(node Node)
+	getRawFile(node ast.Node) *RawFile
 }
 
 type baseNode struct {
@@ -51,6 +76,9 @@ type baseNode struct {
 	level    int
 	built    bool
 	children []Node
+
+	nodeType NodeType
+	rawFile  *RawFile
 }
 
 //Parent return the parent node
@@ -128,12 +156,12 @@ func (s *baseNode) Contains(node Node) bool {
 
 //IsNodeType checks if node is of given node type
 func (s *baseNode) IsNodeType(nodeType NodeType) bool {
-	return reflect.TypeOf(s.realMe).String() == string(nodeType)
+	return s.nodeType == nodeType
 }
 
 //NodeType returns the NodeType of the node
 func (s *baseNode) NodeType() NodeType {
-	return NodeType(reflect.TypeOf(s.realMe).String())
+	return s.nodeType
 }
 
 //FindByName looks for a name in the entire sub tree
@@ -277,8 +305,30 @@ func (s *baseNode) Object() types.Object {
 	return nil
 }
 
+//GetSource returns the source code of the current node
+func (s *baseNode) GetSource() []byte {
+	base := token.Pos(s.rawFile.Base())
+	return s.rawFile.source[s.node.Pos()-base : s.node.End()-base]
+}
+
+//Match matches the source code of current node and content with given regex
+func (s *baseNode) Match(regex regexp.Regexp) bool {
+	return regex.Match(s.rawFile.source)
+}
+
 func (s *baseNode) setRealMe(node Node) {
 	s.realMe = node
+	s.nodeType = NodeType(reflect.TypeOf(node).String())
+}
+
+func (s *baseNode) getRawFile(node ast.Node) *RawFile {
+	switch p := s.realMe.(type) {
+	case *Package:
+		if n, ok := node.(*ast.File); ok {
+			return p.rawFiles[n.Name.String()]
+		}
+	}
+	return s.rawFile
 }
 
 func (s *baseNode) build() {
@@ -299,11 +349,7 @@ func (s *baseNode) Visit(node ast.Node) ast.Visitor {
 		return s
 	}
 
-	n := creator(baseNode{
-		node:   node,
-		parent: s.realMe,
-		level:  s.level + 1,
-	})
-	s.children = append(s.children, n)
+	child := newChild(node, s.realMe, s.level)
+	s.children = append(s.children, child)
 	return nil
 }

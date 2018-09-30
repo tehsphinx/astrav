@@ -5,6 +5,7 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -26,25 +27,31 @@ type Folder struct {
 
 	studentName string
 
-	FSet *token.FileSet
-	Pkgs map[string]*Package
-	Pkg  *types.Package
+	FSet     *token.FileSet
+	Pkgs     map[string]*Package
+	Pkg      *types.Package
+	RawFiles map[string]*RawFile
 }
 
 //ParseFolder will parse all to files in folder. It skips test files.
 func (s *Folder) ParseFolder() (map[string]*Package, error) {
 	s.getStudentName()
+	if err := s.fillRawFiles(); err != nil {
+		return nil, err
+	}
 
 	pkgs, err := parser.ParseDir(s.FSet, s.path, func(info os.FileInfo) bool {
 		return !strings.HasSuffix(info.Name(), "_test.go")
-	}, parser.AllErrors)
-
+	}, parser.AllErrors+parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
 
 	for name, pkg := range pkgs {
-		s.Pkgs[name] = New(pkg).(*Package)
+		s.Pkgs[name] = creator(baseNode{
+			node: pkg,
+		}).(*Package)
+		s.Pkgs[name].rawFiles = s.RawFiles
 	}
 
 	if s.Pkg, err = ParseInfo(s.path, s.FSet, s.getFiles()); err != nil {
@@ -52,6 +59,15 @@ func (s *Folder) ParseFolder() (map[string]*Package, error) {
 	}
 
 	return s.Pkgs, nil
+}
+
+//GetRawFiles a map of file contents
+func (s *Folder) GetRawFiles() map[string][]byte {
+	files := map[string][]byte{}
+	for name, file := range s.RawFiles {
+		files[name] = file.Source()
+	}
+	return files
 }
 
 var student = regexp.MustCompile("users/([^/]*)/go/")
@@ -66,6 +82,29 @@ func (s *Folder) getStudentName() {
 	if 1 < len(submatch) {
 		s.studentName = submatch[1]
 	}
+}
+
+func (s *Folder) fillRawFiles() error {
+	var err error
+	s.RawFiles = map[string]*RawFile{}
+
+	s.FSet.Iterate(func(file *token.File) bool {
+		if !strings.HasSuffix(file.Name(), "_test.go") {
+			b, r := ioutil.ReadFile(file.Name())
+			if r != nil {
+				err = r
+				return false
+			}
+
+			s.RawFiles[file.Name()] = &RawFile{
+				File:   file,
+				source: b,
+			}
+		}
+		return true
+	})
+
+	return err
 }
 
 func (s *Folder) getFiles() []*ast.File {
