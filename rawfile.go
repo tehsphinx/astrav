@@ -21,3 +21,8 @@ type RawFile struct {
 func (s *RawFile) Source() []byte {
 	return s.source
 }
+
+//ContainsPos checks if rawfile cotains a given position or not
+func (s *RawFile) ContainsPos(pos token.Pos) bool {
+	return s.Base() <= int(pos) && int(pos) < s.Base()+s.Size()
+}

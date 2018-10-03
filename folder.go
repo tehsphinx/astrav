@@ -36,14 +36,15 @@ type Folder struct {
 //ParseFolder will parse all to files in folder. It skips test files.
 func (s *Folder) ParseFolder() (map[string]*Package, error) {
 	s.getStudentName()
-	if err := s.fillRawFiles(); err != nil {
-		return nil, err
-	}
 
 	pkgs, err := parser.ParseDir(s.FSet, s.path, func(info os.FileInfo) bool {
 		return !strings.HasSuffix(info.Name(), "_test.go")
 	}, parser.AllErrors+parser.ParseComments)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := s.fillRawFiles(); err != nil {
 		return nil, err
 	}
 
