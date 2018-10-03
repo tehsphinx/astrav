@@ -1,6 +1,7 @@
 package astrav
 
 import (
+	"bytes"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -51,9 +52,11 @@ type Node interface {
 	FindByName(name string) []Node
 	FindFirstByName(name string) Node
 	ChildByName(name string) Node
+	ChildByNodeType(nodeType NodeType) Node
 	FindIdentByName(name string) []*Ident
 	FindFirstIdentByName(name string) *Ident
 	FindByNodeType(nodeType NodeType) []Node
+	FindFirstByNodeType(nodeType NodeType) Node
 	FindByValueType(valType string) []Node
 	FindMaps() []Node
 	IsNodeType(nodeType NodeType) bool
@@ -206,6 +209,16 @@ func (s *baseNode) ChildByName(name string) Node {
 	return nil
 }
 
+//ChildByNodeType returns the first child of a certain type.
+func (s *baseNode) ChildByNodeType(nodeType NodeType) Node {
+	for _, child := range s.Children() {
+		if child.IsNodeType(nodeType) {
+			return child
+		}
+	}
+	return nil
+}
+
 func (s *baseNode) findByName(name string, identOnly, firstOnly, childOnly bool) []Node {
 	var nodes []Node
 	for _, child := range s.Children() {
@@ -239,7 +252,7 @@ func (s *baseNode) findByName(name string, identOnly, firstOnly, childOnly bool)
 	return nodes
 }
 
-//FindByNodeType returns all sub nodes of a certain types. sub nodes are all nodes in the current node.
+//FindByNodeType returns all sub nodes of a certain type
 func (s *baseNode) FindByNodeType(nodeType NodeType) []Node {
 	var nodes []Node
 	for _, child := range s.Children() {
@@ -249,6 +262,19 @@ func (s *baseNode) FindByNodeType(nodeType NodeType) []Node {
 		nodes = append(nodes, child.FindByNodeType(nodeType)...)
 	}
 	return nodes
+}
+
+//FindFirstByNodeType returns the first sub node of a certain type
+func (s *baseNode) FindFirstByNodeType(nodeType NodeType) Node {
+	for _, child := range s.Children() {
+		if child.IsNodeType(nodeType) {
+			return child
+		}
+		if n := child.FindFirstByNodeType(nodeType); n != nil {
+			return n
+		}
+	}
+	return nil
 }
 
 //FindByValueType find all nodes with given value type
@@ -307,6 +333,16 @@ func (s *baseNode) Object() types.Object {
 
 //GetSource returns the source code of the current node
 func (s *baseNode) GetSource() []byte {
+	if s.nodeType == NodeTypePackage {
+		var sources [][]byte
+		for _, rawFile := range s.realMe.(*Package).rawFiles {
+			sources = append(sources, rawFile.source)
+		}
+		return bytes.Join(sources, []byte{'\n'})
+	} else if s.nodeType == NodeTypeFile {
+		return s.rawFile.source
+	}
+
 	base := token.Pos(s.rawFile.Base())
 	return s.rawFile.source[s.node.Pos()-base : s.node.End()-base]
 }
@@ -325,7 +361,11 @@ func (s *baseNode) getRawFile(node ast.Node) *RawFile {
 	switch p := s.realMe.(type) {
 	case *Package:
 		if n, ok := node.(*ast.File); ok {
-			return p.rawFiles[n.Name.String()]
+			for _, rf := range p.rawFiles {
+				if rf.ContainsPos(n.Pos()) {
+					return rf
+				}
+			}
 		}
 	}
 	return s.rawFile
