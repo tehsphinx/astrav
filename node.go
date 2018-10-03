@@ -42,6 +42,7 @@ type Node interface {
 
 	Parent() Node
 	Children() []Node
+	Siblings() []Node
 	Level() int
 	AstNode() ast.Node
 	Walk(f func(node Node) bool)
@@ -93,6 +94,17 @@ func (s *baseNode) Parent() Node {
 func (s *baseNode) Children() []Node {
 	s.build()
 	return s.children
+}
+
+//Siblings returns all sibling nodes
+func (s *baseNode) Siblings() []Node {
+	var nodes []Node
+	for _, node := range s.parent.Children() {
+		if node != s.realMe {
+			nodes = append(nodes, node)
+		}
+	}
+	return nodes
 }
 
 //Level returns the level counted from instantiated node = 0
