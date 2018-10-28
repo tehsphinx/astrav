@@ -82,3 +82,33 @@ func TestForStmt_Post(t *testing.T) {
 	assert.NotNil(t, post.FindByName("i"))
 	assert.Equal(t, NodeTypeIncDecStmt, post.NodeType())
 }
+
+func TestRangeStmt_Key(t *testing.T) {
+	n := getPackage(t, 1)
+
+	loop := n.FindFirstByNodeType(NodeTypeRangeStmt)
+	k := loop.(*RangeStmt).Key()
+	assert.NotNil(t, k)
+	assert.Equal(t, "_", k.(*Ident).Name)
+	assert.Equal(t, NodeTypeIdent, k.NodeType())
+}
+
+func TestRangeStmt_Value(t *testing.T) {
+	n := getPackage(t, 1)
+
+	loop := n.FindFirstByNodeType(NodeTypeRangeStmt)
+	v := loop.(*RangeStmt).Value()
+	assert.NotNil(t, v)
+	assert.Equal(t, "c", v.(*Ident).Name)
+	assert.Equal(t, NodeTypeIdent, v.NodeType())
+}
+
+func TestRangeStmt_X(t *testing.T) {
+	n := getPackage(t, 1)
+
+	loop := n.FindFirstByNodeType(NodeTypeRangeStmt)
+	x := loop.(*RangeStmt).X()
+	assert.NotNil(t, x)
+	assert.NotNil(t, x.FindByName("word"))
+	assert.Equal(t, NodeTypeCallExpr, x.NodeType())
+}
