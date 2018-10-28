@@ -47,14 +47,6 @@ func (s *File) NodeName() *Ident {
 }
 
 //NodeName returns the name of the node
-func (s *SelectorExpr) NodeName() *Ident {
-	if s.Sel == nil {
-		return nil
-	}
-	return newChild(s.Sel, s.parent, s.level).(*Ident)
-}
-
-//NodeName returns the name of the node
 func (s *TypeSpec) NodeName() *Ident {
 	if s.Name == nil {
 		return nil

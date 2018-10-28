@@ -66,6 +66,7 @@ type Node interface {
 	ValueType() types.Type
 	Object() types.Object
 	GetSource() []byte
+	GetSourceString() string
 
 	findByName(name string, identOnly, firstOnly, childOnly bool) []Node
 	setRealMe(node Node)
@@ -357,6 +358,11 @@ func (s *baseNode) GetSource() []byte {
 
 	base := token.Pos(s.rawFile.Base())
 	return s.rawFile.source[s.node.Pos()-base : s.node.End()-base]
+}
+
+//GetSourceString is a convenience function to GetSource as string
+func (s *baseNode) GetSourceString() string {
+	return string(s.GetSource())
 }
 
 //Match matches the source code of current node and content with given regex
