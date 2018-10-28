@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	file = flag.String("file", "./1/file_to_parse.go", "file to parse")
+	file = flag.String("file", "./1/example.go", "file to parse")
 )
 
 func main() {

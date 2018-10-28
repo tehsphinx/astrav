@@ -7,7 +7,7 @@ import (
 )
 
 func TestSelectorExpr_PackageName(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	selExpr := n.FindFirstByNodeType(NodeTypeSelectorExpr).(*SelectorExpr)
 	pkgIdent := selExpr.PackageName()
@@ -17,7 +17,7 @@ func TestSelectorExpr_PackageName(t *testing.T) {
 }
 
 func TestFuncType_Params(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	f := n.FindFirstByName("Score").ChildByNodeType(NodeTypeFuncType)
 	params := f.(*FuncType).Params()
@@ -26,7 +26,7 @@ func TestFuncType_Params(t *testing.T) {
 }
 
 func TestFuncType_Results(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	f := n.FindFirstByName("Score").ChildByNodeType(NodeTypeFuncType)
 	params := f.(*FuncType).Results()
@@ -35,7 +35,7 @@ func TestFuncType_Results(t *testing.T) {
 }
 
 func TestFuncDecl_Params(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	f := n.FindFirstByName("Score")
 	params := f.(*FuncDecl).Params()
@@ -44,10 +44,41 @@ func TestFuncDecl_Params(t *testing.T) {
 }
 
 func TestFuncDecl_Results(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	f := n.FindFirstByName("Score")
 	params := f.(*FuncDecl).Results()
 	assert.NotNil(t, params)
 	assert.Equal(t, 1, len(params.List))
+}
+
+func TestForStmt_Init(t *testing.T) {
+	n := getPackage(t, 2)
+
+	loop := n.FindFirstByNodeType(NodeTypeForStmt)
+	init := loop.(*ForStmt).Init()
+	assert.NotNil(t, init)
+	assert.NotNil(t, init.FindByName("i"))
+	assert.Equal(t, NodeTypeAssignStmt, init.NodeType())
+}
+
+func TestForStmt_Cond(t *testing.T) {
+	n := getPackage(t, 2)
+
+	loop := n.FindFirstByNodeType(NodeTypeForStmt)
+	cond := loop.(*ForStmt).Cond()
+	assert.NotNil(t, cond)
+	assert.NotNil(t, cond.FindByName("i"))
+	assert.NotNil(t, cond.FindByName("num"))
+	assert.Equal(t, NodeTypeBinaryExpr, cond.NodeType())
+}
+
+func TestForStmt_Post(t *testing.T) {
+	n := getPackage(t, 2)
+
+	loop := n.FindFirstByNodeType(NodeTypeForStmt)
+	post := loop.(*ForStmt).Post()
+	assert.NotNil(t, post)
+	assert.NotNil(t, post.FindByName("i"))
+	assert.Equal(t, NodeTypeIncDecStmt, post.NodeType())
 }
