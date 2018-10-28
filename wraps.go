@@ -347,6 +347,16 @@ type FuncDecl struct {
 	baseNode
 }
 
+//Params returns the parameter FieldList
+func (s *FuncDecl) Params() *FieldList {
+	return s.ChildByNodeType(NodeTypeFuncType).(*FuncType).Params()
+}
+
+//Results returns the return parameter FieldList
+func (s *FuncDecl) Results() *FieldList {
+	return s.ChildByNodeType(NodeTypeFuncType).(*FuncType).Results()
+}
+
 //File wraps ast.File
 type File struct {
 	*ast.File
