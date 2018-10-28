@@ -7,7 +7,7 @@ import (
 )
 
 func TestFuncDecl_NodeName(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	var found bool
 	n.Walk(func(node Node) bool {
@@ -27,7 +27,7 @@ func TestFuncDecl_NodeName(t *testing.T) {
 }
 
 func TestFile_NodeName(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	var found bool
 	n.Walk(func(node Node) bool {
@@ -47,7 +47,7 @@ func TestFile_NodeName(t *testing.T) {
 }
 
 func TestIdent_NodeName(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	var found bool
 	n.Walk(func(node Node) bool {
@@ -67,7 +67,7 @@ func TestIdent_NodeName(t *testing.T) {
 }
 
 func TestImportSpec_NodeName(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	var found bool
 	n.Walk(func(node Node) bool {
@@ -87,7 +87,7 @@ func TestImportSpec_NodeName(t *testing.T) {
 }
 
 func TestSelectorExpr_NodeName(t *testing.T) {
-	n := getTree(t)
+	n := getTree(t, 1)
 
 	var found bool
 	n.Walk(func(node Node) bool {

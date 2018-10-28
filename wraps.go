@@ -305,6 +305,30 @@ type ForStmt struct {
 	baseNode
 }
 
+//Init returns the init node of the for loop
+func (s *ForStmt) Init() Node {
+	if s.ForStmt.Init == nil {
+		return nil
+	}
+	return newChild(s.ForStmt.Init, s.realMe, s.level)
+}
+
+//Cond returns the condition node of the for loop
+func (s *ForStmt) Cond() Node {
+	if s.ForStmt.Cond == nil {
+		return nil
+	}
+	return newChild(s.ForStmt.Cond, s.realMe, s.level)
+}
+
+//Post returns the post iteration node of the for loop
+func (s *ForStmt) Post() Node {
+	if s.ForStmt.Post == nil {
+		return nil
+	}
+	return newChild(s.ForStmt.Post, s.realMe, s.level)
+}
+
 //RangeStmt wraps ast.RangeStmt
 type RangeStmt struct {
 	*ast.RangeStmt
