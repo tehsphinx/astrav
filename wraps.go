@@ -68,6 +68,23 @@ type ParenExpr struct {
 	baseNode
 }
 
+//SelectorExpr wraps ast.SelectorExpr
+type SelectorExpr struct {
+	*ast.SelectorExpr
+	baseNode
+}
+
+//PackageIdent returns the package name
+func (s *SelectorExpr) PackageIdent() *Ident {
+	if s.X == nil {
+		return nil
+	}
+	if _, ok := s.X.(*ast.Ident); !ok {
+		return nil
+	}
+	return newChild(s.X, s.realMe, s.level).(*Ident)
+}
+
 //IndexExpr wraps ast.IndexExpr
 type IndexExpr struct {
 	*ast.IndexExpr
@@ -132,6 +149,22 @@ type StructType struct {
 type FuncType struct {
 	*ast.FuncType
 	baseNode
+}
+
+//Params returns the parameter FieldList
+func (s *FuncType) Params() *FieldList {
+	if s.FuncType.Params == nil {
+		return nil
+	}
+	return newChild(s.FuncType.Params, s.realMe, s.level).(*FieldList)
+}
+
+//Results returns the return parameter FieldList
+func (s *FuncType) Results() *FieldList {
+	if s.FuncType.Results == nil {
+		return nil
+	}
+	return newChild(s.FuncType.Results, s.realMe, s.level).(*FieldList)
 }
 
 //InterfaceType wraps ast.InterfaceType

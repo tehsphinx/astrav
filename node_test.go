@@ -269,7 +269,7 @@ func getTree(t *testing.T) Node {
 
 func getFile(t *testing.T) ast.Node {
 	fs := token.NewFileSet()
-	f, err := parser.ParseFile(fs, "example/file_to_parse.go", nil, parser.AllErrors)
+	f, err := parser.ParseFile(fs, "example/1/file_to_parse.go", nil, parser.AllErrors)
 	if err != nil {
 		t.Fatal(err)
 	}
