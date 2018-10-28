@@ -68,12 +68,6 @@ type ParenExpr struct {
 	baseNode
 }
 
-//SelectorExpr wraps ast.SelectorExpr
-type SelectorExpr struct {
-	*ast.SelectorExpr
-	baseNode
-}
-
 //IndexExpr wraps ast.IndexExpr
 type IndexExpr struct {
 	*ast.IndexExpr
