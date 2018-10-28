@@ -335,6 +335,30 @@ type RangeStmt struct {
 	baseNode
 }
 
+//Key returns the key of the range statment
+func (s *RangeStmt) Key() Node {
+	if s.RangeStmt.Key == nil {
+		return nil
+	}
+	return newChild(s.RangeStmt.Key, s.realMe, s.level)
+}
+
+//Value returns the value of the range statment
+func (s *RangeStmt) Value() Node {
+	if s.RangeStmt.Value == nil {
+		return nil
+	}
+	return newChild(s.RangeStmt.Value, s.realMe, s.level)
+}
+
+//X returns the variable to range over
+func (s *RangeStmt) X() Node {
+	if s.RangeStmt.X == nil {
+		return nil
+	}
+	return newChild(s.RangeStmt.X, s.realMe, s.level)
+}
+
 //ImportSpec wraps ast.ImportSpec
 type ImportSpec struct {
 	*ast.ImportSpec
