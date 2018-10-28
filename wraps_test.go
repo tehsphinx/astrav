@@ -10,7 +10,7 @@ func TestSelectorExpr_PackageName(t *testing.T) {
 	n := getTree(t)
 
 	selExpr := n.FindFirstByNodeType(NodeTypeSelectorExpr).(*SelectorExpr)
-	pkgIdent := selExpr.PackageIdent()
+	pkgIdent := selExpr.PackageName()
 
 	assert.Equal(t, "strings", pkgIdent.Name)
 	assert.Equal(t, selExpr, pkgIdent.Parent())

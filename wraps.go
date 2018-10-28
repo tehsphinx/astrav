@@ -74,8 +74,8 @@ type SelectorExpr struct {
 	baseNode
 }
 
-//PackageIdent returns the package name
-func (s *SelectorExpr) PackageIdent() *Ident {
+//PackageName returns the package name
+func (s *SelectorExpr) PackageName() *Ident {
 	if s.X == nil {
 		return nil
 	}
