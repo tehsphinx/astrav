@@ -33,3 +33,21 @@ func TestFuncType_Results(t *testing.T) {
 	assert.NotNil(t, params)
 	assert.Equal(t, 1, len(params.List))
 }
+
+func TestFuncDecl_Params(t *testing.T) {
+	n := getTree(t)
+
+	f := n.FindFirstByName("Score")
+	params := f.(*FuncDecl).Params()
+	assert.NotNil(t, params)
+	assert.Equal(t, 1, len(params.List))
+}
+
+func TestFuncDecl_Results(t *testing.T) {
+	n := getTree(t)
+
+	f := n.FindFirstByName("Score")
+	params := f.(*FuncDecl).Results()
+	assert.NotNil(t, params)
+	assert.Equal(t, 1, len(params.List))
+}
