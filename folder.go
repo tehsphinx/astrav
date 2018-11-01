@@ -71,6 +71,11 @@ func (s *Folder) GetRawFiles() map[string][]byte {
 	return files
 }
 
+//GetPath returns the folder path
+func (s *Folder) GetPath() string {
+	return s.path
+}
+
 var student = regexp.MustCompile("users/([^/]*)/go/")
 
 func (s *Folder) getStudentName() {
