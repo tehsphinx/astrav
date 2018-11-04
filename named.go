@@ -1,6 +1,8 @@
 package astrav
 
-import "go/ast"
+import (
+	"go/ast"
+)
 
 //Named provides an interface for nodes with a name
 type Named interface {
@@ -69,8 +71,11 @@ func (s *CallExpr) NodeName() *Ident {
 	if s.Fun == nil {
 		return nil
 	}
-	if f, ok := s.Fun.(*ast.Ident); ok {
-		return newChild(f, s.realMe, s.pkg, s.level).(*Ident)
+	switch t := s.Fun.(type) {
+	case *ast.Ident:
+		return newChild(t, s.realMe, s.pkg, s.level).(*Ident)
+	case *ast.ArrayType:
+		return newChild(t.Elt, s.realMe, s.pkg, s.level).(*Ident)
 	}
 	return nil
 }
