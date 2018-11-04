@@ -82,7 +82,7 @@ func (s *SelectorExpr) PackageName() *Ident {
 	if _, ok := s.X.(*ast.Ident); !ok {
 		return nil
 	}
-	return newChild(s.X, s.realMe, s.level).(*Ident)
+	return newChild(s.X, s.realMe, s.pkg, s.level).(*Ident)
 }
 
 //IndexExpr wraps ast.IndexExpr
@@ -156,7 +156,7 @@ func (s *FuncType) Params() *FieldList {
 	if s.FuncType.Params == nil {
 		return nil
 	}
-	return newChild(s.FuncType.Params, s.realMe, s.level).(*FieldList)
+	return newChild(s.FuncType.Params, s.realMe, s.pkg, s.level).(*FieldList)
 }
 
 //Results returns the return parameter FieldList
@@ -164,7 +164,7 @@ func (s *FuncType) Results() *FieldList {
 	if s.FuncType.Results == nil {
 		return nil
 	}
-	return newChild(s.FuncType.Results, s.realMe, s.level).(*FieldList)
+	return newChild(s.FuncType.Results, s.realMe, s.pkg, s.level).(*FieldList)
 }
 
 //InterfaceType wraps ast.InterfaceType
@@ -310,7 +310,7 @@ func (s *ForStmt) Init() Node {
 	if s.ForStmt.Init == nil {
 		return nil
 	}
-	return newChild(s.ForStmt.Init, s.realMe, s.level)
+	return newChild(s.ForStmt.Init, s.realMe, s.pkg, s.level)
 }
 
 //Cond returns the condition node of the for loop
@@ -318,7 +318,7 @@ func (s *ForStmt) Cond() Node {
 	if s.ForStmt.Cond == nil {
 		return nil
 	}
-	return newChild(s.ForStmt.Cond, s.realMe, s.level)
+	return newChild(s.ForStmt.Cond, s.realMe, s.pkg, s.level)
 }
 
 //Post returns the post iteration node of the for loop
@@ -326,7 +326,7 @@ func (s *ForStmt) Post() Node {
 	if s.ForStmt.Post == nil {
 		return nil
 	}
-	return newChild(s.ForStmt.Post, s.realMe, s.level)
+	return newChild(s.ForStmt.Post, s.realMe, s.pkg, s.level)
 }
 
 //RangeStmt wraps ast.RangeStmt
@@ -340,7 +340,7 @@ func (s *RangeStmt) Key() Node {
 	if s.RangeStmt.Key == nil {
 		return nil
 	}
-	return newChild(s.RangeStmt.Key, s.realMe, s.level)
+	return newChild(s.RangeStmt.Key, s.realMe, s.pkg, s.level)
 }
 
 //Value returns the value of the range statment
@@ -348,7 +348,7 @@ func (s *RangeStmt) Value() Node {
 	if s.RangeStmt.Value == nil {
 		return nil
 	}
-	return newChild(s.RangeStmt.Value, s.realMe, s.level)
+	return newChild(s.RangeStmt.Value, s.realMe, s.pkg, s.level)
 }
 
 //X returns the variable to range over
@@ -356,7 +356,7 @@ func (s *RangeStmt) X() Node {
 	if s.RangeStmt.X == nil {
 		return nil
 	}
-	return newChild(s.RangeStmt.X, s.realMe, s.level)
+	return newChild(s.RangeStmt.X, s.realMe, s.pkg, s.level)
 }
 
 //ImportSpec wraps ast.ImportSpec

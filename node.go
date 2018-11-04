@@ -25,12 +25,13 @@ func NewFileNode(node *ast.File, rawFile *RawFile) *File {
 	return file
 }
 
-func newChild(node ast.Node, parent Node, parentLevel int) Node {
+func newChild(node ast.Node, parent Node, pkg *Package, parentLevel int) Node {
 	rawFile := parent.getRawFile(node)
 
 	return creator(baseNode{
 		node:    node,
 		parent:  parent,
+		pkg:     pkg,
 		level:   parentLevel + 1,
 		rawFile: rawFile,
 	})
@@ -40,35 +41,45 @@ func newChild(node ast.Node, parent Node, parentLevel int) Node {
 type Node interface {
 	ast.Node
 
-	Parent() Node
-	Children() []Node
-	Siblings() []Node
 	Level() int
 	AstNode() ast.Node
-	Walk(f func(node Node) bool)
-	Parents() []Node
-	NextParentByType(nodeType NodeType) Node
-	IsContainedByType(nodeType NodeType) bool
-	Contains(node Node) bool
-	FindByName(name string) []Node
-	FindFirstByName(name string) Node
-	ChildByName(name string) Node
-	ChildByNodeType(nodeType NodeType) Node
-	FindIdentByName(name string) []*Ident
-	FindFirstIdentByName(name string) *Ident
-	FindByNodeType(nodeType NodeType) []Node
-	FindFirstByNodeType(nodeType NodeType) Node
-	FindByValueType(valType string) []Node
-	FindMaps() []Node
 	IsNodeType(nodeType NodeType) bool
 	NodeType() NodeType
 	IsValueType(valType string) bool
 	ValueType() types.Type
 	Object() types.Object
+	Walk(f func(node Node) bool)
+
+	Parent() Node
+	Parents() []Node
+	NextParentByType(nodeType NodeType) Node
+	IsContainedByType(nodeType NodeType) bool
+	Siblings() []Node
+	Children() []Node
+	Contains(node Node) bool
+	ChildByName(name string) Node
+	ChildByNodeType(nodeType NodeType) Node
+
+	FindByName(name string) []Node
+	FindFirstByName(name string) Node
+	FindIdentByName(name string) []*Ident
+	FindFirstIdentByName(name string) *Ident
+	FindByNodeType(nodeType NodeType) []Node
+	FindFirstByNodeType(nodeType NodeType) Node
+	FindByValueType(valType string) []Node
+	FindNodeTypeInCallTree(nodeType NodeType) []Node
+	FindMaps() []Node
+
+	ChildNodes(cond func(n Node) bool) []Node
+	ChildNode(cond func(n Node) bool) Node
+	TreeNodes(cond func(n Node) bool) []Node
+	TreeNode(cond func(n Node) bool) Node
+	CallTreeNodes(cond func(n Node) bool) []Node
+	CallTreeNode(cond func(n Node) bool) Node
+
 	GetSource() []byte
 	GetSourceString() string
 
-	findByName(name string, identOnly, firstOnly, childOnly bool) []Node
 	setRealMe(node Node)
 	getRawFile(node ast.Node) *RawFile
 }
@@ -78,6 +89,7 @@ type baseNode struct {
 
 	realMe   Node
 	parent   Node
+	pkg      *Package
 	level    int
 	built    bool
 	children []Node
@@ -182,21 +194,41 @@ func (s *baseNode) NodeType() NodeType {
 
 //FindByName looks for a name in the entire sub tree
 func (s *baseNode) FindByName(name string) []Node {
-	return s.findByName(name, false, false, false)
+	return s.TreeNodes(func(n Node) bool {
+		f, ok := n.(Named)
+		if !ok {
+			return false
+		}
+
+		ident := f.NodeName()
+		return ident != nil && ident.Name == name
+	})
 }
 
 //FindFirstByName looks for a name in the entire sub tree. First node is returned if there are multiple.
 func (s *baseNode) FindFirstByName(name string) Node {
-	nodes := s.findByName(name, false, true, false)
-	for _, node := range nodes {
-		return node
-	}
-	return nil
+	return s.TreeNode(func(n Node) bool {
+		f, ok := n.(Named)
+		if !ok {
+			return false
+		}
+
+		ident := f.NodeName()
+		return ident != nil && ident.Name == name
+	})
 }
 
 //FindIdentByName looks for Ident nodes in the entire sub tree with given name
 func (s *baseNode) FindIdentByName(name string) []*Ident {
-	nodes := s.findByName(name, true, false, false)
+	nodes := s.TreeNodes(func(n Node) bool {
+		id, ok := n.(*Ident)
+		if !ok {
+			return false
+		}
+
+		return id.Name == name
+	})
+
 	var idents []*Ident
 	for _, node := range nodes {
 		idents = append(idents, node.(*Ident))
@@ -206,113 +238,75 @@ func (s *baseNode) FindIdentByName(name string) []*Ident {
 
 //FindFirstIdentByName looks for the first Ident node in subtree with given name
 func (s *baseNode) FindFirstIdentByName(name string) *Ident {
-	nodes := s.findByName(name, true, false, false)
-	for _, node := range nodes {
-		return node.(*Ident)
+	ident := s.TreeNode(func(n Node) bool {
+		id, ok := n.(*Ident)
+		if !ok {
+			return false
+		}
+
+		return id.Name == name
+	})
+	if ident == nil {
+		return nil
 	}
-	return nil
+
+	return ident.(*Ident)
 }
 
 //ChildByName retrieves a node among the direkt children by name (only nodes that have a name)
 func (s *baseNode) ChildByName(name string) Node {
-	nodes := s.findByName(name, false, true, true)
-	for _, node := range nodes {
-		return node
-	}
-	return nil
+	return s.ChildNode(func(n Node) bool {
+		f, ok := n.(Named)
+		if !ok {
+			return false
+		}
+
+		ident := f.NodeName()
+		return ident != nil && ident.Name == name
+	})
 }
 
 //ChildByNodeType returns the first child of a certain type.
 func (s *baseNode) ChildByNodeType(nodeType NodeType) Node {
-	for _, child := range s.Children() {
-		if child.IsNodeType(nodeType) {
-			return child
-		}
-	}
-	return nil
-}
-
-func (s *baseNode) findByName(name string, identOnly, firstOnly, childOnly bool) []Node {
-	var nodes []Node
-	for _, child := range s.Children() {
-		valid := !identOnly
-		if _, ok := child.(*Ident); ok {
-			valid = true
-		}
-
-		if f, ok := child.(Named); ok {
-			ident := f.NodeName()
-			if ident != nil && ident.Name == name {
-				if valid {
-					nodes = append(nodes, child)
-					if firstOnly {
-						return nodes
-					}
-				}
-			}
-		}
-
-		if childOnly {
-			continue
-		}
-		if f := child.findByName(name, identOnly, firstOnly, childOnly); f != nil {
-			if firstOnly {
-				return f
-			}
-			nodes = append(nodes, f...)
-		}
-	}
-	return nodes
+	return s.ChildNode(func(n Node) bool {
+		return n.IsNodeType(nodeType)
+	})
 }
 
 //FindByNodeType returns all sub nodes of a certain type
 func (s *baseNode) FindByNodeType(nodeType NodeType) []Node {
-	var nodes []Node
-	for _, child := range s.Children() {
-		if child.IsNodeType(nodeType) {
-			nodes = append(nodes, child)
-		}
-		nodes = append(nodes, child.FindByNodeType(nodeType)...)
-	}
-	return nodes
+	return s.TreeNodes(func(n Node) bool {
+		return n.IsNodeType(nodeType)
+	})
+}
+
+//FindNodeTypeInCallTree returns all nodes in call tree of a certain type
+func (s *baseNode) FindNodeTypeInCallTree(nodeType NodeType) []Node {
+	return s.CallTreeNodes(func(n Node) bool {
+		return n.IsNodeType(nodeType)
+	})
 }
 
 //FindFirstByNodeType returns the first sub node of a certain type
 func (s *baseNode) FindFirstByNodeType(nodeType NodeType) Node {
-	for _, child := range s.Children() {
-		if child.IsNodeType(nodeType) {
-			return child
-		}
-		if n := child.FindFirstByNodeType(nodeType); n != nil {
-			return n
-		}
-	}
-	return nil
+	return s.TreeNode(func(n Node) bool {
+		return n.IsNodeType(nodeType)
+	})
 }
 
 //FindByValueType find all nodes with given value type
 func (s *baseNode) FindByValueType(valType string) []Node {
-	var nodes []Node
-	for _, child := range s.Children() {
-		if child.IsValueType(valType) {
-			nodes = append(nodes, child)
-		}
-		nodes = append(nodes, child.FindByValueType(valType)...)
-	}
-	return nodes
+	return s.TreeNodes(func(n Node) bool {
+		return n.IsValueType(valType)
+	})
 }
 
 //FindMaps find all nodes with given value type
 func (s *baseNode) FindMaps() []Node {
-	var nodes []Node
-	for _, child := range s.Children() {
-		valueType := child.ValueType()
-		if valueType != nil && strings.HasPrefix(valueType.String(), "map") {
-			nodes = append(nodes, child)
-		}
-		nodes = append(nodes, child.FindMaps()...)
-	}
-	return nodes
+	return s.TreeNodes(func(n Node) bool {
+		valueType := n.ValueType()
+		return valueType != nil && strings.HasPrefix(valueType.String(), "map")
+	})
 }
 
 //IsValueType checks if value type is of given type
@@ -389,6 +383,115 @@ func (s *baseNode) getRawFile(node ast.Node) *RawFile {
 	return s.rawFile
 }
 
+//ChildNodes walks only child nodes collecting all nodes that meet the condition
+func (s *baseNode) ChildNodes(cond func(n Node) bool) []Node {
+	var nodes []Node
+	for _, child := range s.Children() {
+		if cond(child) {
+			nodes = append(nodes, child)
+		}
+	}
+	return nodes
+}
+
+//ChildNode walks only child nodes returning the first node that meets the condition
+func (s *baseNode) ChildNode(cond func(n Node) bool) Node {
+	for _, child := range s.Children() {
+		if cond(child) {
+			return child
+		}
+	}
+	return nil
+}
+
+//TreeNodes walks the child tree collecting all nodes that meet the condition
+func (s *baseNode) TreeNodes(cond func(n Node) bool) []Node {
+	var nodes []Node
+	for _, child := range s.Children() {
+		if cond(child) {
+			nodes = append(nodes, child)
+		}
+		nodes = append(nodes, child.TreeNodes(cond)...)
+	}
+	return nodes
+}
+
+//TreeNode walks the child tree returning the first node that meets the condition
+func (s *baseNode) TreeNode(cond func(n Node) bool) Node {
+	for _, child := range s.Children() {
+		if cond(child) {
+			return child
+		}
+		if n := child.TreeNode(cond); n != nil {
+			return n
+		}
+	}
+	return nil
+}
+
+//CallTreeNodes walks the call tree collecting all nodes that meet the condition
+func (s baseNode) CallTreeNodes(cond func(n Node) bool) []Node {
+	if s.pkg == nil {
+		return nil
+	}
+
+	var nodes []Node
+	for _, child := range s.Children() {
+		if cond(child) {
+			nodes = append(nodes, child)
+		}
+
+		if n := s.callNode(child); n != nil {
+			if cond(n) {
+				nodes = append(nodes, n)
+			}
+			// TODO: circular call trees
+			nodes = append(nodes, n.CallTreeNodes(cond)...)
+		}
+
+		nodes = append(nodes, child.CallTreeNodes(cond)...)
+	}
+	return nodes
+}
+
+//CallTreeNode walks the call tree returning the first node that meets the condition
+func (s baseNode) CallTreeNode(cond func(n Node) bool) Node {
+	if s.pkg == nil {
+		return nil
+	}
+
+	for _, child := range s.Children() {
+		if cond(child) {
+			return child
+		}
+
+		if n := s.callNode(child); n != nil {
+			if cond(n) {
+				return n
+			}
+			// TODO: circular call trees
+			if node := n.CallTreeNode(cond); node != nil {
+				return node
+			}
+		}
+
+		if node := child.CallTreeNode(cond); node != nil {
+			return node
+		}
+	}
+	return nil
+}
+
+func (s *baseNode) callNode(n Node) Node {
+	switch n.NodeType() {
+	case NodeTypeCallExpr:
+		if node := s.pkg.FuncDeclbyCallExpr(n.(*CallExpr)); node != nil {
+			return node
+		}
+	}
+	return nil
+}
+
 func (s *baseNode) build() {
 	if s.built {
 		return
@@ -407,7 +510,12 @@ func (s *baseNode) Visit(node ast.Node) ast.Visitor {
 		return s
 	}
 
-	child := newChild(node, s.realMe, s.level)
+	pkg := s.pkg
+	if s.nodeType == NodeTypePackage {
+		pkg = s.realMe.(*Package)
+	}
+
+	child := newChild(node, s.realMe, pkg, s.level)
 	s.children = append(s.children, child)
 	return nil
 }
