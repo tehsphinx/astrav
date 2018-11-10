@@ -68,6 +68,7 @@ type Node interface {
 	FindFirstByNodeType(nodeType NodeType) Node
 	FindByValueType(valType string) []Node
 	FindNodeTypeInCallTree(nodeType NodeType) []Node
+	FindByToken(t token.Token) []Node
 	FindMaps() []Node
 
 	ChildNodes(cond func(n Node) bool) []Node
@@ -298,6 +299,14 @@ func (s *baseNode) FindFirstByNodeType(nodeType NodeType) Node {
 func (s *baseNode) FindByValueType(valType string) []Node {
 	return s.TreeNodes(func(n Node) bool {
 		return n.IsValueType(valType)
+	})
+}
+
+//FindByToken finds a node with a token.Token attached and of given token type
+func (s *baseNode) FindByToken(t token.Token) []Node {
+	return s.TreeNodes(func(n Node) bool {
+		tok, ok := n.(Token)
+		return ok && tok.Token() == t
 	})
 }
 
