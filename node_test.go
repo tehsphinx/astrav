@@ -215,6 +215,16 @@ func TestBaseNode_FindByValueType(t *testing.T) {
 	}
 }
 
+func TestBaseNode_FindByToken(t *testing.T) {
+	n := getTree(t, 3)
+
+	nodes := n.FindByToken(token.BREAK)
+	assert.Equal(t, 1, len(nodes))
+	for _, v := range nodes {
+		assert.Equal(t, token.BREAK, v.(Token).Token())
+	}
+}
+
 func TestBaseNode_ValueType(t *testing.T) {
 	n := getTree(t, 1)
 
