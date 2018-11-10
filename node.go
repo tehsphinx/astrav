@@ -58,6 +58,7 @@ type Node interface {
 	Children() []Node
 	Contains(node Node) bool
 	ChildByName(name string) Node
+	ChildrenByNodeType(nodeType NodeType) []Node
 	ChildByNodeType(nodeType NodeType) Node
 
 	FindByName(name string) []Node
@@ -264,6 +265,13 @@ func (s *baseNode) ChildByName(name string) Node {
 
 		ident := f.NodeName()
 		return ident != nil && ident.Name == name
+	})
+}
+
+//ChildrenByNodeType returns the first child of a certain type.
+func (s *baseNode) ChildrenByNodeType(nodeType NodeType) []Node {
+	return s.ChildNodes(func(n Node) bool {
+		return n.IsNodeType(nodeType)
 	})
 }
 

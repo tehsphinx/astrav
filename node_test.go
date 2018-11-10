@@ -128,6 +128,21 @@ func TestBaseNode_ChildByName(t *testing.T) {
 	assert.Equal(t, "Score", f.(*FuncDecl).Name.Name)
 }
 
+func TestBaseNode_ChildByNodeType(t *testing.T) {
+	n := getTree(t, 3)
+
+	f := n.ChildByNodeType(NodeTypeFuncDecl)
+	assert.Equal(t, "IsIsogram", f.(*FuncDecl).Name.Name)
+}
+
+func TestBaseNode_ChildrenByNodeType(t *testing.T) {
+	n := getTree(t, 3)
+
+	f := n.FindFirstByNodeType(NodeTypeRangeStmt)
+	nodes := f.ChildrenByNodeType(NodeTypeIdent)
+	assert.Equal(t, 3, len(nodes))
+}
+
 func TestBaseNode_FindFirstByName(t *testing.T) {
 	n := getTree(t, 1)
 
