@@ -259,7 +259,16 @@ func TestBaseNode_IsValueType(t *testing.T) {
 			isTp = true
 		}
 	}
-	assert.True(t, true, isTp)
+	assert.True(t, isTp)
+}
+
+func TestBaseNode_IsValueType2(t *testing.T) {
+	n := getTree(t, 4)
+
+	nodes := n.FindFirstByNodeType(NodeTypeRangeStmt).FindFirstByNodeType(NodeTypeAssignStmt).ChildrenByNodeType(NodeTypeIdent)
+	for _, node := range nodes {
+		assert.True(t, node.IsValueType("bool"))
+	}
 }
 
 func TestBaseNode_IsNodeType(t *testing.T) {

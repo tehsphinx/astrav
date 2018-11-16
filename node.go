@@ -329,9 +329,13 @@ func (s *baseNode) FindMaps() []Node {
 //IsValueType checks if value type is of given type
 func (s *baseNode) IsValueType(valType string) bool {
 	if expr, ok := s.node.(ast.Expr); ok {
-		info.TypeOf(expr)
 		if t, ok := info.Types[expr]; ok {
 			if t.Type.String() == valType {
+				return true
+			}
+		}
+		if t := info.TypeOf(expr); t != nil {
+			if t.String() == valType {
 				return true
 			}
 		}
