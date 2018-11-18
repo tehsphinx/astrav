@@ -65,10 +65,11 @@ type Node interface {
 	FindFirstByName(name string) Node
 	FindIdentByName(name string) []*Ident
 	FindFirstIdentByName(name string) *Ident
+	FindNameInCallTree(name string) []Node
 	FindByNodeType(nodeType NodeType) []Node
 	FindFirstByNodeType(nodeType NodeType) Node
-	FindByValueType(valType string) []Node
 	FindNodeTypeInCallTree(nodeType NodeType) []Node
+	FindByValueType(valType string) []Node
 	FindByToken(t token.Token) []Node
 	FindMaps() []Node
 
@@ -197,6 +198,19 @@ func (s *baseNode) NodeType() NodeType {
 //FindByName looks for a name in the entire sub tree
 func (s *baseNode) FindByName(name string) []Node {
 	return s.TreeNodes(func(n Node) bool {
+		f, ok := n.(Named)
+		if !ok {
+			return false
+		}
+
+		ident := f.NodeName()
+		return ident != nil && ident.Name == name
+	})
+}
+
+//FindNameInCallTree returns all nodes in call tree with given name
+func (s *baseNode) FindNameInCallTree(name string) []Node {
+	return s.CallTreeNodes(func(n Node) bool {
 		f, ok := n.(Named)
 		if !ok {
 			return false
