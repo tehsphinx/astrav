@@ -296,6 +296,14 @@ func TestBaseNode_IsContainedByType(t *testing.T) {
 	}
 }
 
+func TestBaseNode_FindNodeTypeInCallTree(t *testing.T) {
+	n := getPackage(t, 5)
+
+	diffFunc := n.FindFirstByName("Difference")
+	nodes := diffFunc.FindNodeTypeInCallTree(NodeTypeReturnStmt)
+	assert.Equal(t, 4, len(nodes))
+}
+
 func getTree(t *testing.T, example int) Node {
 	f := getFile(t, example)
 	return NewNode(f)
