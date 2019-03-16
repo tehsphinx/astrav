@@ -561,7 +561,23 @@ func (s *baseNode) Visit(node ast.Node) ast.Visitor {
 		pkg = s.realMe.(*Package)
 	}
 
-	child := newChild(node, s.realMe, pkg, s.level)
-	s.children = append(s.children, child)
+	switch n := node.(type) {
+	case *ast.Field:
+		// splitting one field with multiple names into multiple fields
+		for _, name := range n.Names {
+			newNode := &ast.Field{
+				Comment: n.Comment,
+				Type:    n.Type,
+				Doc:     n.Doc,
+				Tag:     n.Tag,
+				Names:   []*ast.Ident{name},
+			}
+			child := newChild(newNode, s.realMe, pkg, s.level)
+			s.children = append(s.children, child)
+		}
+	default:
+		child := newChild(node, s.realMe, pkg, s.level)
+		s.children = append(s.children, child)
+	}
 	return nil
 }

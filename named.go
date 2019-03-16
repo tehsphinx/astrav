@@ -6,6 +6,7 @@ import (
 
 // Named provides an interface for nodes with a name
 type Named interface {
+	// NodeName returns the name of the node
 	NodeName() *Ident
 }
 
@@ -83,4 +84,12 @@ func (s *CallExpr) NodeName() *Ident {
 // NodeName returns the name of the node
 func (s *Ident) NodeName() *Ident {
 	return s
+}
+
+// NodeName returns the name of the node
+func (s *Field) NodeName() *Ident {
+	if len(s.Names) == 0 {
+		return nil
+	}
+	return newChild(s.Names[0], s.realMe, s.pkg, s.level).(*Ident)
 }

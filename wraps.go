@@ -233,6 +233,32 @@ type AssignStmt struct {
 	baseNode
 }
 
+// Rhs returns right hand side nodes
+func (s *AssignStmt) Rhs() []Node {
+	var nodes []Node
+	for _, node := range s.Children() {
+		for _, astNode := range s.node.(*ast.AssignStmt).Rhs {
+			if node.AstNode() == astNode {
+				nodes = append(nodes, node)
+			}
+		}
+	}
+	return nodes
+}
+
+// Lhs returns left hand side nodes
+func (s *AssignStmt) Lhs() []Node {
+	var nodes []Node
+	for _, node := range s.Children() {
+		for _, astNode := range s.node.(*ast.AssignStmt).Lhs {
+			if node.AstNode() == astNode {
+				nodes = append(nodes, node)
+			}
+		}
+	}
+	return nodes
+}
+
 // GoStmt wraps ast.GoStmt
 type GoStmt struct {
 	*ast.GoStmt
