@@ -2,7 +2,7 @@ package astrav
 
 import "go/ast"
 
-//Package wraps ast.Package
+// Package wraps ast.Package
 type Package struct {
 	*ast.Package
 	baseNode
@@ -13,7 +13,7 @@ type Package struct {
 	filled bool
 }
 
-//FuncDeclByName returns a func declaration by name
+// FuncDeclByName returns a func declaration by name
 func (s *Package) FuncDeclByName(name string) *FuncDecl {
 	s.fill()
 
@@ -28,7 +28,7 @@ func (s *Package) FuncDeclByName(name string) *FuncDecl {
 	return nil
 }
 
-//FuncDeclbyCallExpr returns a function declaration from its usage
+// FuncDeclbyCallExpr returns a function declaration from its usage
 func (s *Package) FuncDeclbyCallExpr(node *CallExpr) *FuncDecl {
 	ident := node.NodeName()
 	if ident == nil {

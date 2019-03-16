@@ -4,12 +4,12 @@ import (
 	"go/ast"
 )
 
-//Named provides an interface for nodes with a name
+// Named provides an interface for nodes with a name
 type Named interface {
 	NodeName() *Ident
 }
 
-//NodeName returns the name of the node
+// NodeName returns the name of the node
 func (s *FuncDecl) NodeName() *Ident {
 	if s.Name == nil {
 		return nil
@@ -18,7 +18,7 @@ func (s *FuncDecl) NodeName() *Ident {
 	return newChild(s.Name, s.realMe, s.pkg, s.level).(*Ident)
 }
 
-//NodeName returns the name of the node
+// NodeName returns the name of the node
 func (s *LabeledStmt) NodeName() *Ident {
 	if s.Label == nil {
 		return nil
@@ -26,7 +26,7 @@ func (s *LabeledStmt) NodeName() *Ident {
 	return newChild(s.Label, s.realMe, s.pkg, s.level).(*Ident)
 }
 
-//NodeName returns the name of the node
+// NodeName returns the name of the node
 func (s *BranchStmt) NodeName() *Ident {
 	if s.Label == nil {
 		return nil
@@ -34,7 +34,7 @@ func (s *BranchStmt) NodeName() *Ident {
 	return newChild(s.Label, s.realMe, s.pkg, s.level).(*Ident)
 }
 
-//NodeName returns the name of the node
+// NodeName returns the name of the node
 func (s *ImportSpec) NodeName() *Ident {
 	if s.Name == nil {
 		return nil
@@ -42,7 +42,7 @@ func (s *ImportSpec) NodeName() *Ident {
 	return newChild(s.Name, s.realMe, s.pkg, s.level).(*Ident)
 }
 
-//NodeName returns the name of the node
+// NodeName returns the name of the node
 func (s *File) NodeName() *Ident {
 	if s.Name == nil {
 		return nil
@@ -50,7 +50,7 @@ func (s *File) NodeName() *Ident {
 	return newChild(s.Name, s.realMe, s.pkg, s.level).(*Ident)
 }
 
-//NodeName returns the name of the node
+// NodeName returns the name of the node
 func (s *SelectorExpr) NodeName() *Ident {
 	if s.Sel == nil {
 		return nil
@@ -58,7 +58,7 @@ func (s *SelectorExpr) NodeName() *Ident {
 	return newChild(s.Sel, s.realMe, s.pkg, s.level).(*Ident)
 }
 
-//NodeName returns the name of the node
+// NodeName returns the name of the node
 func (s *TypeSpec) NodeName() *Ident {
 	if s.Name == nil {
 		return nil
@@ -66,7 +66,7 @@ func (s *TypeSpec) NodeName() *Ident {
 	return newChild(s.Name, s.realMe, s.pkg, s.level).(*Ident)
 }
 
-//NodeName returns the name of the node
+// NodeName returns the name of the node
 func (s *CallExpr) NodeName() *Ident {
 	if s.Fun == nil {
 		return nil
@@ -80,7 +80,7 @@ func (s *CallExpr) NodeName() *Ident {
 	return nil
 }
 
-//NodeName returns the name of the node
+// NodeName returns the name of the node
 func (s *Ident) NodeName() *Ident {
 	return s
 }

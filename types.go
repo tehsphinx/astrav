@@ -11,7 +11,7 @@ var (
 	info types.Info
 )
 
-//ParseInfo parses all files for type information which is then available
+// ParseInfo parses all files for type information which is then available
 // from the Nodes. When using Folder.ParseFolder, this is done automatically.
 func ParseInfo(path string, fSet *token.FileSet, files []*ast.File) (*types.Package, error) {
 	info = types.Info{
@@ -34,7 +34,7 @@ func ParseInfo(path string, fSet *token.FileSet, files []*ast.File) (*types.Pack
 	return pkg, nil
 }
 
-//NodeType defines a node type string to search for type
+// NodeType defines a node type string to search for type
 type NodeType string
 
 // Nodetype contants

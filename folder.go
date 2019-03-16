@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-//NewFolder creates a new folder with given path. Use ParseFolder to parse ast from go files in path.
+// NewFolder creates a new folder with given path. Use ParseFolder to parse ast from go files in path.
 func NewFolder(path string) *Folder {
 	return &Folder{
 		path: path,
@@ -21,7 +21,7 @@ func NewFolder(path string) *Folder {
 	}
 }
 
-//Folder represents a go package folder
+// Folder represents a go package folder
 type Folder struct {
 	path string
 
@@ -33,7 +33,7 @@ type Folder struct {
 	RawFiles map[string]*RawFile
 }
 
-//ParseFolder will parse all to files in folder. It skips test files.
+// ParseFolder will parse all to files in folder. It skips test files.
 func (s *Folder) ParseFolder() (map[string]*Package, error) {
 	s.getStudentName()
 
@@ -62,7 +62,7 @@ func (s *Folder) ParseFolder() (map[string]*Package, error) {
 	return s.Pkgs, nil
 }
 
-//GetRawFiles a map of file contents
+// GetRawFiles a map of file contents
 func (s *Folder) GetRawFiles() map[string][]byte {
 	files := map[string][]byte{}
 	for name, file := range s.RawFiles {
@@ -71,7 +71,7 @@ func (s *Folder) GetRawFiles() map[string][]byte {
 	return files
 }
 
-//GetPath returns the folder path
+// GetPath returns the folder path
 func (s *Folder) GetPath() string {
 	return s.path
 }
@@ -123,12 +123,12 @@ func (s *Folder) getFiles() []*ast.File {
 	return files
 }
 
-//Package returns a package by name
+// Package returns a package by name
 func (s *Folder) Package(name string) *Package {
 	return s.Pkgs[name]
 }
 
-//StudentName returns the students name. ParseFolder has to be run before to parse students name from path.
+// StudentName returns the students name. ParseFolder has to be run before to parse students name from path.
 func (s *Folder) StudentName() string {
 	return s.studentName
 }
