@@ -7,14 +7,10 @@ import (
 	"go/types"
 )
 
-var (
-	info types.Info
-)
-
 // ParseInfo parses all files for type information which is then available
 // from the Nodes. When using Folder.ParseFolder, this is done automatically.
-func ParseInfo(path string, fSet *token.FileSet, files []*ast.File) (*types.Package, error) {
-	info = types.Info{
+func (s *Folder) ParseInfo(path string, fSet *token.FileSet, files []*ast.File) (*types.Package, error) {
+	s.Info = &types.Info{
 		Types:      map[ast.Expr]types.TypeAndValue{},
 		Defs:       map[*ast.Ident]types.Object{},
 		Uses:       map[*ast.Ident]types.Object{},
@@ -26,9 +22,13 @@ func ParseInfo(path string, fSet *token.FileSet, files []*ast.File) (*types.Pack
 		Importer: importer.Default(),
 	}
 
-	pkg, err := conf.Check(path, fSet, files, &info)
+	pkg, err := conf.Check(path, fSet, files, s.Info)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, pkg := range s.Pkgs {
+		pkg.info = s.Info
 	}
 
 	return pkg, nil

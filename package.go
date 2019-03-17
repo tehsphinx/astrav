@@ -1,6 +1,9 @@
 package astrav
 
-import "go/ast"
+import (
+	"go/ast"
+	"go/types"
+)
 
 // Package wraps ast.Package
 type Package struct {
@@ -9,6 +12,7 @@ type Package struct {
 
 	rawFiles map[string]*RawFile
 	defs     map[*Ident]Node
+	info     *types.Info
 
 	filled bool
 }

@@ -27,6 +27,7 @@ type Folder struct {
 
 	studentName string
 
+	Info     *types.Info
 	FSet     *token.FileSet
 	Pkgs     map[string]*Package
 	Pkg      *types.Package
@@ -55,7 +56,7 @@ func (s *Folder) ParseFolder() (map[string]*Package, error) {
 		s.Pkgs[name].rawFiles = s.RawFiles
 	}
 
-	if s.Pkg, err = ParseInfo(s.path, s.FSet, s.getFiles()); err != nil {
+	if s.Pkg, err = s.ParseInfo(s.path, s.FSet, s.getFiles()); err != nil {
 		return nil, err
 	}
 

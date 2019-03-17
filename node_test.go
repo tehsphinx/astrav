@@ -3,7 +3,6 @@ package astrav
 import (
 	"fmt"
 	"go/ast"
-	"go/parser"
 	"go/token"
 	"reflect"
 	"testing"
@@ -46,7 +45,7 @@ func TestBaseNode_Children(t *testing.T) {
 func TestBaseNode_Contains(t *testing.T) {
 	n := getTree(t, 1)
 
-	child := n.Children()[2].Children()[2].Children()[1].Children()[2]
+	child := n.Children()[2].Children()[2].Children()[0]
 	assert.Equal(t, true, n.Contains(child))
 	assert.Equal(t, false, child.Contains(n))
 
@@ -65,9 +64,9 @@ func TestBaseNode_Level(t *testing.T) {
 	assert.Equal(t, 1, child1.Level())
 	child2 := child1.Children()[2]
 	assert.Equal(t, 2, child2.Level())
-	child3 := child2.Children()[1]
+	child3 := child2.Children()[0]
 	assert.Equal(t, 3, child3.Level())
-	child4 := child3.Children()[2]
+	child4 := child3.Children()[0]
 	assert.Equal(t, 4, child4.Level())
 }
 
@@ -78,9 +77,9 @@ func TestBaseNode_Parent(t *testing.T) {
 	assert.Equal(t, n, child1.Parent())
 	child2 := child1.Children()[2]
 	assert.Equal(t, child1, child2.Parent())
-	child3 := child2.Children()[1]
+	child3 := child2.Children()[0]
 	assert.Equal(t, child2, child3.Parent())
-	child4 := child3.Children()[2]
+	child4 := child3.Children()[0]
 	assert.Equal(t, child3, child4.Parent())
 }
 
@@ -89,8 +88,8 @@ func TestBaseNode_Parents(t *testing.T) {
 
 	child1 := n.Children()[2]
 	child2 := child1.Children()[2]
-	child3 := child2.Children()[1]
-	child4 := child3.Children()[2]
+	child3 := child2.Children()[0]
+	child4 := child3.Children()[0]
 	assert.Equal(t, []Node{child3, child2, child1, n}, child4.Parents())
 }
 
@@ -221,10 +220,10 @@ func TestBaseNode_FindFirstIdentByName(t *testing.T) {
 }
 
 func TestBaseNode_FindByValueType(t *testing.T) {
-	n := getTree(t, 1)
+	n := getPackage(t, 1)
 
 	nodes := n.FindByValueType("byte")
-	assert.Equal(t, 4, len(nodes))
+	assert.Equal(t, 6, len(nodes))
 	for _, v := range nodes {
 		assert.Equal(t, "byte", v.ValueType().String())
 	}
@@ -241,7 +240,7 @@ func TestBaseNode_FindByToken(t *testing.T) {
 }
 
 func TestBaseNode_ValueType(t *testing.T) {
-	n := getTree(t, 1)
+	n := getPackage(t, 1)
 
 	v := n.FindFirstIdentByName("Score")
 	assert.Equal(t, "func(word string) int", v.ValueType().String())
@@ -251,7 +250,7 @@ func TestBaseNode_ValueType(t *testing.T) {
 }
 
 func TestBaseNode_IsValueType(t *testing.T) {
-	n := getTree(t, 1)
+	n := getPackage(t, 1)
 
 	var isTp bool
 	for _, v := range n.FindFirstByName("Score").FindByName("c") {
@@ -263,7 +262,7 @@ func TestBaseNode_IsValueType(t *testing.T) {
 }
 
 func TestBaseNode_IsValueType2(t *testing.T) {
-	n := getTree(t, 4)
+	n := getPackage(t, 4)
 
 	nodes := n.FindFirstByNodeType(NodeTypeRangeStmt).FindFirstByNodeType(NodeTypeAssignStmt).ChildrenByNodeType(NodeTypeIdent)
 	for _, node := range nodes {
@@ -310,19 +309,16 @@ func getTree(t *testing.T, example int) Node {
 }
 
 func getFile(t *testing.T, example int) ast.Node {
-	fileName := fmt.Sprintf("example/%d/example.go", example)
-
-	fs := token.NewFileSet()
-	f, err := parser.ParseFile(fs, fileName, nil, parser.AllErrors)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ParseInfo(".", fs, []*ast.File{f})
-	return f
+	pkg := getPackage(t, example)
+	return pkg.FindFirstByNodeType(NodeTypeFile).AstNode()
 }
 
 func getPackage(t *testing.T, example int) Node {
 	path := fmt.Sprintf("example/%d", example)
+	return getPackageFromPath(t, path)
+}
+
+func getPackageFromPath(t *testing.T, path string) Node {
 	folder := NewFolder(path)
 	pkgs, err := folder.ParseFolder()
 	if err != nil {

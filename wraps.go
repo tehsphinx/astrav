@@ -82,7 +82,8 @@ func (s *SelectorExpr) PackageName() *Ident {
 	if _, ok := s.X.(*ast.Ident); !ok {
 		return nil
 	}
-	return newChild(s.X, s.realMe, s.pkg, s.level).(*Ident)
+
+	return s.findChildByAstNode(s.X).(*Ident)
 }
 
 // IndexExpr wraps ast.IndexExpr
@@ -127,6 +128,16 @@ type BinaryExpr struct {
 	baseNode
 }
 
+// X returns left hand side nodes
+func (s *BinaryExpr) X() Node {
+	return s.findChildByAstNode(s.node.(*ast.BinaryExpr).X)
+}
+
+// Y returns left hand side nodes
+func (s *BinaryExpr) Y() Node {
+	return s.findChildByAstNode(s.node.(*ast.BinaryExpr).Y)
+}
+
 // KeyValueExpr wraps ast.KeyValueExpr
 type KeyValueExpr struct {
 	*ast.KeyValueExpr
@@ -156,7 +167,7 @@ func (s *FuncType) Params() *FieldList {
 	if s.FuncType.Params == nil {
 		return nil
 	}
-	return newChild(s.FuncType.Params, s.realMe, s.pkg, s.level).(*FieldList)
+	return s.findChildByAstNode(s.FuncType.Params).(*FieldList)
 }
 
 // Results returns the return parameter FieldList
@@ -164,7 +175,7 @@ func (s *FuncType) Results() *FieldList {
 	if s.FuncType.Results == nil {
 		return nil
 	}
-	return newChild(s.FuncType.Results, s.realMe, s.pkg, s.level).(*FieldList)
+	return s.findChildByAstNode(s.FuncType.Results).(*FieldList)
 }
 
 // InterfaceType wraps ast.InterfaceType
@@ -233,28 +244,20 @@ type AssignStmt struct {
 	baseNode
 }
 
-// Rhs returns right hand side nodes
-func (s *AssignStmt) Rhs() []Node {
+// RHS returns right hand side nodes
+func (s *AssignStmt) RHS() []Node {
 	var nodes []Node
-	for _, node := range s.Children() {
-		for _, astNode := range s.node.(*ast.AssignStmt).Rhs {
-			if node.AstNode() == astNode {
-				nodes = append(nodes, node)
-			}
-		}
+	for _, node := range s.node.(*ast.AssignStmt).Rhs {
+		nodes = append(nodes, s.findChildByAstNode(node))
 	}
 	return nodes
 }
 
-// Lhs returns left hand side nodes
-func (s *AssignStmt) Lhs() []Node {
+// LHS returns left hand side nodes
+func (s *AssignStmt) LHS() []Node {
 	var nodes []Node
-	for _, node := range s.Children() {
-		for _, astNode := range s.node.(*ast.AssignStmt).Lhs {
-			if node.AstNode() == astNode {
-				nodes = append(nodes, node)
-			}
-		}
+	for _, node := range s.node.(*ast.AssignStmt).Lhs {
+		nodes = append(nodes, s.findChildByAstNode(node))
 	}
 	return nodes
 }
@@ -336,7 +339,7 @@ func (s *ForStmt) Init() Node {
 	if s.ForStmt.Init == nil {
 		return nil
 	}
-	return newChild(s.ForStmt.Init, s.realMe, s.pkg, s.level)
+	return s.findChildByAstNode(s.ForStmt.Init)
 }
 
 // Cond returns the condition node of the for loop
@@ -344,7 +347,7 @@ func (s *ForStmt) Cond() Node {
 	if s.ForStmt.Cond == nil {
 		return nil
 	}
-	return newChild(s.ForStmt.Cond, s.realMe, s.pkg, s.level)
+	return s.findChildByAstNode(s.ForStmt.Cond)
 }
 
 // Post returns the post iteration node of the for loop
@@ -352,7 +355,7 @@ func (s *ForStmt) Post() Node {
 	if s.ForStmt.Post == nil {
 		return nil
 	}
-	return newChild(s.ForStmt.Post, s.realMe, s.pkg, s.level)
+	return s.findChildByAstNode(s.ForStmt.Post)
 }
 
 // RangeStmt wraps ast.RangeStmt
@@ -366,7 +369,7 @@ func (s *RangeStmt) Key() Node {
 	if s.RangeStmt.Key == nil {
 		return nil
 	}
-	return newChild(s.RangeStmt.Key, s.realMe, s.pkg, s.level)
+	return s.findChildByAstNode(s.RangeStmt.Key)
 }
 
 // Value returns the value of the range statment
@@ -374,7 +377,7 @@ func (s *RangeStmt) Value() Node {
 	if s.RangeStmt.Value == nil {
 		return nil
 	}
-	return newChild(s.RangeStmt.Value, s.realMe, s.pkg, s.level)
+	return s.findChildByAstNode(s.RangeStmt.Value)
 }
 
 // X returns the variable to range over
@@ -382,7 +385,7 @@ func (s *RangeStmt) X() Node {
 	if s.RangeStmt.X == nil {
 		return nil
 	}
-	return newChild(s.RangeStmt.X, s.realMe, s.pkg, s.level)
+	return s.findChildByAstNode(s.RangeStmt.X)
 }
 
 // ImportSpec wraps ast.ImportSpec

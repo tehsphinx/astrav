@@ -48,6 +48,7 @@ type Node interface {
 	IsValueType(valType string) bool
 	ValueType() types.Type
 	Object() types.Object
+	Info() *types.Info
 	Walk(f func(node Node) bool)
 
 	Parent() Node
@@ -344,12 +345,12 @@ func (s *baseNode) FindMaps() []Node {
 // IsValueType checks if value type is of given type
 func (s *baseNode) IsValueType(valType string) bool {
 	if expr, ok := s.node.(ast.Expr); ok {
-		if t, ok := info.Types[expr]; ok {
+		if t, ok := s.Info().Types[expr]; ok {
 			if t.Type.String() == valType {
 				return true
 			}
 		}
-		if t := info.TypeOf(expr); t != nil {
+		if t := s.Info().TypeOf(expr); t != nil {
 			if t.String() == valType {
 				return true
 			}
@@ -361,7 +362,7 @@ func (s *baseNode) IsValueType(valType string) bool {
 // ValueType returns value type information of an expression, nil otherwise
 func (s *baseNode) ValueType() types.Type {
 	if expr, ok := s.node.(ast.Expr); ok {
-		return info.TypeOf(expr)
+		return s.Info().TypeOf(expr)
 	}
 	return nil
 }
@@ -369,9 +370,25 @@ func (s *baseNode) ValueType() types.Type {
 // Object returns the object of an identifier, nil otherwise
 func (s *baseNode) Object() types.Object {
 	if expr, ok := s.node.(*ast.Ident); ok {
-		return info.ObjectOf(expr)
+		return s.Info().ObjectOf(expr)
 	}
 	return nil
+}
+
+// Info returns the types.info node.
+func (s *baseNode) Info() *types.Info {
+	return s.Pkg().info
+}
+
+// Pkg returns the package this node belongs to.
+func (s *baseNode) Pkg() *Package {
+	if s.nodeType == NodeTypePackage {
+		return s.realMe.(*Package)
+	}
+	if s.pkg == nil {
+		return nil
+	}
+	return s.pkg
 }
 
 // GetSource returns the source code of the current node
@@ -386,8 +403,12 @@ func (s *baseNode) GetSource() []byte {
 		return s.rawFile.source
 	}
 
+	return s.getSourceRange(s.node.Pos(), s.node.End())
+}
+
+func (s *baseNode) getSourceRange(pos, end token.Pos) []byte {
 	base := token.Pos(s.rawFile.Base())
-	return s.rawFile.source[s.node.Pos()-base : s.node.End()-base]
+	return s.rawFile.source[pos-base : end-base]
 }
 
 // GetSourceString is a convenience function to GetSource as string
@@ -417,6 +438,15 @@ func (s *baseNode) getRawFile(node ast.Node) *RawFile {
 		}
 	}
 	return s.rawFile
+}
+
+func (s *baseNode) findChildByAstNode(astNode ast.Node) Node {
+	for _, node := range s.Children() {
+		if node.AstNode() == astNode {
+			return node
+		}
+	}
+	return nil
 }
 
 // ChildNodes walks only child nodes collecting all nodes that meet the condition
@@ -471,7 +501,7 @@ func (s baseNode) CallTreeNodes(cond func(n Node) bool) []Node {
 }
 
 func (s baseNode) callTreeNodes(cond func(n Node) bool, visited map[Node]bool) []Node {
-	if s.pkg == nil {
+	if s.Pkg() == nil {
 		return nil
 	}
 
@@ -502,7 +532,7 @@ func (s baseNode) callTreeNodes(cond func(n Node) bool, visited map[Node]bool) [
 
 // CallTreeNode walks the call tree returning the first node that meets the condition
 func (s baseNode) CallTreeNode(cond func(n Node) bool) Node {
-	if s.pkg == nil {
+	if s.Pkg() == nil {
 		return nil
 	}
 
@@ -531,7 +561,7 @@ func (s baseNode) CallTreeNode(cond func(n Node) bool) Node {
 func (s *baseNode) callNode(n Node) Node {
 	switch n.NodeType() {
 	case NodeTypeCallExpr:
-		if node := s.pkg.FuncDeclbyCallExpr(n.(*CallExpr)); node != nil {
+		if node := s.Pkg().FuncDeclbyCallExpr(n.(*CallExpr)); node != nil {
 			return node
 		}
 	}
@@ -556,11 +586,7 @@ func (s *baseNode) Visit(node ast.Node) ast.Visitor {
 		return s
 	}
 
-	pkg := s.pkg
-	if s.nodeType == NodeTypePackage {
-		pkg = s.realMe.(*Package)
-	}
-
+	pkg := s.Pkg()
 	switch n := node.(type) {
 	case *ast.Field:
 		// splitting one field with multiple names into multiple fields
