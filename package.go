@@ -42,6 +42,15 @@ func (s *Package) FuncDeclbyCallExpr(node *CallExpr) *FuncDecl {
 	return s.FuncDeclByName(ident.Name)
 }
 
+// GetRawFiles returns the raw files from the package.
+func (s *Package) GetRawFiles() map[string][]byte {
+	var files = map[string][]byte{}
+	for key, file := range s.rawFiles {
+		files[key] = file.Source()
+	}
+	return files
+}
+
 func (s *Package) fill() {
 	if s.filled {
 		return
