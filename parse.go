@@ -53,9 +53,9 @@ func Parse(fset *token.FileSet, root http.FileSystem, dir string, filter func(os
 			}
 			continue
 		}
-		fileSources[filename] = fileBytes
+		fileSources[path.Join(dir, filename)] = fileBytes
 
-		src, err := parser.ParseFile(fset, filename, fileBytes, mode)
+		src, err := parser.ParseFile(fset, path.Join(dir, filename), fileBytes, mode)
 		if err != nil {
 			if first == nil {
 				first = errors.WithStack(err)
