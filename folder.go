@@ -5,17 +5,17 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
-	"io/ioutil"
+	"net/http"
 	"os"
-	"path/filepath"
-	"regexp"
 	"strings"
 )
 
 // NewFolder creates a new folder with given path. Use ParseFolder to parse ast from go files in path.
-func NewFolder(path string) *Folder {
+// The pkgPath is the import path of the package to be used by types.ParseInfo.
+func NewFolder(pkgPath string, dir http.FileSystem) *Folder {
 	return &Folder{
-		path: path,
+		path: pkgPath,
+		dir:  dir,
 		FSet: token.NewFileSet(),
 		Pkgs: map[string]*Package{},
 	}
@@ -24,8 +24,7 @@ func NewFolder(path string) *Folder {
 // Folder represents a go package folder
 type Folder struct {
 	path string
-
-	studentName string
+	dir  http.FileSystem
 
 	Info     *types.Info
 	FSet     *token.FileSet
@@ -36,16 +35,14 @@ type Folder struct {
 
 // ParseFolder will parse all to files in folder. It skips test files.
 func (s *Folder) ParseFolder() (map[string]*Package, error) {
-	s.getStudentName()
-
-	pkgs, err := parser.ParseDir(s.FSet, s.path, func(info os.FileInfo) bool {
+	pkgs, fileSources, err := Parse(s.FSet, s.dir, func(info os.FileInfo) bool {
 		return !strings.HasSuffix(info.Name(), "_test.go")
 	}, parser.AllErrors+parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.fillRawFiles(); err != nil {
+	if err := s.fillRawFiles(fileSources); err != nil {
 		return nil, err
 	}
 
@@ -72,41 +69,24 @@ func (s *Folder) GetRawFiles() map[string][]byte {
 	return files
 }
 
-// GetPath returns the folder path
+// GetPath returns the pkg import path.
 func (s *Folder) GetPath() string {
 	return s.path
 }
 
-var student = regexp.MustCompile("users/([^/]*)/go/")
-
-func (s *Folder) getStudentName() {
-	path, err := filepath.Abs(s.path)
-	if err != nil {
-		return
-	}
-
-	submatch := student.FindStringSubmatch(path)
-	if 1 < len(submatch) {
-		s.studentName = submatch[1]
-	}
-}
-
-func (s *Folder) fillRawFiles() error {
+func (s *Folder) fillRawFiles(fileSources map[string][]byte) error {
 	var err error
 	s.RawFiles = map[string]*RawFile{}
 
 	s.FSet.Iterate(func(file *token.File) bool {
-		if !strings.HasSuffix(file.Name(), "_test.go") {
-			b, r := ioutil.ReadFile(file.Name())
-			if r != nil {
-				err = r
-				return false
-			}
+		fileSrc, ok := fileSources[file.Name()]
+		if !ok {
+			return true
+		}
 
-			s.RawFiles[file.Name()] = &RawFile{
-				File:   file,
-				source: b,
-			}
+		s.RawFiles[file.Name()] = &RawFile{
+			File:   file,
+			source: fileSrc,
 		}
 		return true
 	})
@@ -127,9 +107,4 @@ func (s *Folder) getFiles() []*ast.File {
 // Package returns a package by name
 func (s *Folder) Package(name string) *Package {
 	return s.Pkgs[name]
-}
-
-// StudentName returns the students name. ParseFolder has to be run before to parse students name from path.
-func (s *Folder) StudentName() string {
-	return s.studentName
 }

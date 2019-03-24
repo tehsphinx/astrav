@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"net/http"
 	"reflect"
 	"testing"
 
@@ -319,7 +320,7 @@ func getPackage(t *testing.T, example int) Node {
 }
 
 func getPackageFromPath(t *testing.T, path string) Node {
-	folder := NewFolder(path)
+	folder := NewFolder("exercism/solution", http.Dir(path))
 	pkgs, err := folder.ParseFolder()
 	if err != nil {
 		t.Fatal(err)
