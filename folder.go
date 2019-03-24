@@ -12,10 +12,10 @@ import (
 
 // NewFolder creates a new folder with given path. Use ParseFolder to parse ast from go files in path.
 // The pkgPath is the import path of the package to be used by types.ParseInfo.
-func NewFolder(pkgPath string, dir http.FileSystem) *Folder {
+func NewFolder(root http.FileSystem, dir string) *Folder {
 	return &Folder{
-		path: pkgPath,
 		dir:  dir,
+		root: root,
 		FSet: token.NewFileSet(),
 		Pkgs: map[string]*Package{},
 	}
@@ -23,8 +23,8 @@ func NewFolder(pkgPath string, dir http.FileSystem) *Folder {
 
 // Folder represents a go package folder
 type Folder struct {
-	path string
-	dir  http.FileSystem
+	dir  string
+	root http.FileSystem
 
 	Info     *types.Info
 	FSet     *token.FileSet
@@ -35,16 +35,14 @@ type Folder struct {
 
 // ParseFolder will parse all to files in folder. It skips test files.
 func (s *Folder) ParseFolder() (map[string]*Package, error) {
-	pkgs, fileSources, err := Parse(s.FSet, s.dir, func(info os.FileInfo) bool {
+	pkgs, fileSources, err := Parse(s.FSet, s.root, s.dir, func(info os.FileInfo) bool {
 		return !strings.HasSuffix(info.Name(), "_test.go")
 	}, parser.AllErrors+parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.fillRawFiles(fileSources); err != nil {
-		return nil, err
-	}
+	s.fillRawFiles(fileSources)
 
 	for name, pkg := range pkgs {
 		s.Pkgs[name] = creator(baseNode{
@@ -53,7 +51,7 @@ func (s *Folder) ParseFolder() (map[string]*Package, error) {
 		s.Pkgs[name].rawFiles = s.RawFiles
 	}
 
-	if s.Pkg, err = s.ParseInfo(s.path, s.FSet, s.getFiles()); err != nil {
+	if s.Pkg, err = s.ParseInfo(s.dir, s.FSet, s.getFiles()); err != nil {
 		return nil, err
 	}
 
@@ -71,11 +69,10 @@ func (s *Folder) GetRawFiles() map[string][]byte {
 
 // GetPath returns the pkg import path.
 func (s *Folder) GetPath() string {
-	return s.path
+	return s.dir
 }
 
-func (s *Folder) fillRawFiles(fileSources map[string][]byte) error {
-	var err error
+func (s *Folder) fillRawFiles(fileSources map[string][]byte) {
 	s.RawFiles = map[string]*RawFile{}
 
 	s.FSet.Iterate(func(file *token.File) bool {
@@ -90,8 +87,6 @@ func (s *Folder) fillRawFiles(fileSources map[string][]byte) error {
 		}
 		return true
 	})
-
-	return err
 }
 
 func (s *Folder) getFiles() []*ast.File {

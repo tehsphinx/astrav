@@ -5,6 +5,8 @@ import (
 	"go/importer"
 	"go/token"
 	"go/types"
+
+	"github.com/pkg/errors"
 )
 
 // ParseInfo parses all files for type information which is then available
@@ -24,7 +26,7 @@ func (s *Folder) ParseInfo(path string, fSet *token.FileSet, files []*ast.File) 
 
 	pkg, err := conf.Check(path, fSet, files, s.Info)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	for _, pkg := range s.Pkgs {

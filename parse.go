@@ -7,7 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // ParseFileSystem calls ParseFile for all files with names ending in ".go" in the
@@ -23,17 +26,17 @@ import (
 // returned. If a parse error occurred, a non-nil but incomplete map and the
 // first error encountered are returned.
 //
-func Parse(fset *token.FileSet, dir http.FileSystem, filter func(os.FileInfo) bool,
+func Parse(fset *token.FileSet, root http.FileSystem, dir string, filter func(os.FileInfo) bool,
 	mode parser.Mode) (pkgs map[string]*ast.Package, fileSources map[string][]byte, first error) {
-	fd, err := dir.Open(".")
+	fd, err := root.Open(dir)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.WithStack(err)
 	}
 	defer fd.Close()
 
 	list, err := fd.Readdir(-1)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.WithStack(err)
 	}
 
 	pkgs = make(map[string]*ast.Package)
@@ -43,7 +46,7 @@ func Parse(fset *token.FileSet, dir http.FileSystem, filter func(os.FileInfo) bo
 		if !strings.HasSuffix(filename, ".go") || filter != nil && !filter(d) {
 			continue
 		}
-		fileBytes, err := getSource(filename, dir)
+		fileBytes, err := getSource(path.Join(dir, filename), root)
 		if err != nil {
 			if first == nil {
 				first = err
@@ -55,7 +58,7 @@ func Parse(fset *token.FileSet, dir http.FileSystem, filter func(os.FileInfo) bo
 		src, err := parser.ParseFile(fset, filename, fileBytes, mode)
 		if err != nil {
 			if first == nil {
-				first = err
+				first = errors.WithStack(err)
 			}
 			continue
 		}
@@ -77,7 +80,8 @@ func Parse(fset *token.FileSet, dir http.FileSystem, filter func(os.FileInfo) bo
 func getSource(path string, dir http.FileSystem) ([]byte, error) {
 	f, err := dir.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
-	return ioutil.ReadAll(f)
+	bytes, err := ioutil.ReadAll(f)
+	return bytes, errors.WithStack(err)
 }
