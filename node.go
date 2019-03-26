@@ -589,6 +589,11 @@ func (s *baseNode) Visit(node ast.Node) ast.Visitor {
 	pkg := s.Pkg()
 	switch n := node.(type) {
 	case *ast.Field:
+		if len(n.Names) < 2 {
+			child := newChild(node, s.realMe, pkg, s.level)
+			s.children = append(s.children, child)
+			break
+		}
 		// splitting one field with multiple names into multiple fields
 		for _, name := range n.Names {
 			newNode := &ast.Field{
