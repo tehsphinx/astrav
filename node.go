@@ -521,10 +521,10 @@ func (s *baseNode) setRealMe(node Node) {
 }
 
 func (s *baseNode) getRawFile(node ast.Node) *RawFile {
-	switch p := s.realMe.(type) {
-	case *Package:
+	pkg, ok := s.realMe.(*Package)
+	if ok {
 		if n, ok := node.(*ast.File); ok {
-			for _, rf := range p.rawFiles {
+			for _, rf := range pkg.rawFiles {
 				if rf.ContainsPos(n.Pos()) {
 					return rf
 				}
@@ -650,8 +650,7 @@ func (s baseNode) CallTreeNode(cond func(n Node) bool) Node {
 }
 
 func (s *baseNode) callNode(n Node) Node {
-	switch n.NodeType() {
-	case NodeTypeCallExpr:
+	if n.NodeType() == NodeTypeCallExpr {
 		if node := s.Pkg().FuncDeclbyCallExpr(n.(*CallExpr)); node != nil {
 			return node
 		}

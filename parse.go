@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ParseFileSystem calls ParseFile for all files with names ending in ".go" in the
+// Parse calls ParseFile for all files with names ending in ".go" in the
 // http.FileSystem specified by path and returns a map of package name -> package
 // AST with all the packages found.
 //

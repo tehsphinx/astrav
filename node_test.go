@@ -356,7 +356,7 @@ func TestBaseNode_Scope(t *testing.T) {
 	assert.Contains(t, scope.Names(), "lenA")
 
 	node = pkg.FindFirstByName("x")
-	scopeNode, scope = node.GetScope()
+	scopeNode, _ = node.GetScope()
 	assert.Equal(t, NodeTypeFile, scopeNode.NodeType())
 }
 

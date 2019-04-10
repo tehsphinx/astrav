@@ -60,8 +60,7 @@ func (s *Package) fill() {
 	s.defs = map[*Ident]Node{}
 
 	s.Walk(func(node Node) bool {
-		switch n := node.(type) {
-		case *FuncDecl:
+		if n, ok := node.(*FuncDecl); ok {
 			ident := n.NodeName()
 			if ident == nil {
 				return true
