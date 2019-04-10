@@ -304,6 +304,62 @@ func TestBaseNode_FindNodeTypeInCallTree(t *testing.T) {
 	assert.Equal(t, 4, len(nodes))
 }
 
+func TestBaseNode_FindDeclarations(t *testing.T) {
+	n := getPackage(t, 7)
+	decls := n.FindDeclarations()
+	assert.Equal(t, 17, len(decls))
+
+	decls = n.FindFirstByName("Distance").FindDeclarations()
+	assert.Equal(t, 11, len(decls))
+	decls = n.FindFirstByName("Distance").FindFirstByNodeType(NodeTypeBlockStmt).FindDeclarations()
+	assert.Equal(t, 8, len(decls))
+}
+
+func TestBaseNode_FindVarDeclarations(t *testing.T) {
+	n := getPackage(t, 7)
+	decls := n.FindVarDeclarations()
+	assert.Equal(t, 8, len(decls))
+}
+
+func TestBaseNode_FindUsages(t *testing.T) {
+	n := getPackage(t, 7)
+	decls := n.FindVarDeclarations()
+	for _, decl := range decls {
+		var expectedCount = 0
+		switch decl.Name {
+		case "x":
+			expectedCount = 1
+		case "lenA":
+			expectedCount = 3
+		case "lenB":
+			expectedCount = 2
+		case "lenC":
+			expectedCount = 1
+		case "lenD":
+			expectedCount = 1
+		case "lenE":
+			expectedCount = 1
+		case "diff":
+			expectedCount = 2
+		}
+		usages := n.FindUsages(decl)
+		assert.Equal(t, expectedCount, len(usages))
+	}
+}
+
+func TestBaseNode_Scope(t *testing.T) {
+	pkg := getPackage(t, 7)
+
+	node := pkg.FindFirstByName("lenA")
+	scopeNode, scope := node.GetScope()
+	assert.Equal(t, NodeTypeFuncType, scopeNode.NodeType())
+	assert.Contains(t, scope.Names(), "lenA")
+
+	node = pkg.FindFirstByName("x")
+	scopeNode, scope = node.GetScope()
+	assert.Equal(t, NodeTypeFile, scopeNode.NodeType())
+}
+
 func getTree(t *testing.T, example int) Node {
 	f := getFile(t, example)
 	return NewNode(f)
@@ -320,7 +376,7 @@ func getPackage(t *testing.T, example int) Node {
 }
 
 func getPackageFromPath(t *testing.T, path string) Node {
-	folder := NewFolder("exercism/solution", http.Dir(path))
+	folder := NewFolder(http.Dir(path), "")
 	pkgs, err := folder.ParseFolder()
 	if err != nil {
 		t.Fatal(err)

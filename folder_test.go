@@ -8,7 +8,7 @@ import (
 )
 
 func TestFolder_ParseFolder(t *testing.T) {
-	f := NewFolder("exercism/solution", http.Dir("./example/1"))
+	f := NewFolder(http.Dir("./example/1"), "")
 	pkgs, err := f.ParseFolder()
 	if err != nil {
 		t.Error(err)

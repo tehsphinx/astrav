@@ -51,6 +51,7 @@ type Node interface {
 	Info() *types.Info
 	Walk(f func(node Node) bool)
 
+	GetScope() (Node, *types.Scope)
 	Parent() Node
 	Parents() []Node
 	NextParentByType(nodeType NodeType) Node
@@ -73,6 +74,10 @@ type Node interface {
 	FindByValueType(valType string) []Node
 	FindByToken(t token.Token) []Node
 	FindMaps() []Node
+	FindDeclarations() []*Ident
+	FindDeclarationsByType(nodeType NodeType) []*Ident
+	FindVarDeclarations() []*Ident
+	FindUsages(*Ident) []*Ident
 
 	ChildNodes(cond func(n Node) bool) []Node
 	ChildNode(cond func(n Node) bool) Node
@@ -342,6 +347,95 @@ func (s *baseNode) FindMaps() []Node {
 	})
 }
 
+// FindDeclarations finds all declarations
+func (s *baseNode) FindDeclarations() []*Ident {
+	return s.findIdents(s.Info().Defs, func(node *Ident) bool {
+		return true
+	})
+}
+
+// FindDeclarationsByType finds all declarations by (parent) type
+func (s *baseNode) FindDeclarationsByType(nodeType NodeType) []*Ident {
+	return s.findIdents(s.Info().Defs, func(node *Ident) bool {
+		return node.Parent().IsNodeType(nodeType)
+	})
+}
+
+// FindVarDeclarations finds all assignStmt (:=), valueSpec (var, const) declarations
+func (s *baseNode) FindVarDeclarations() []*Ident {
+	return s.findIdents(s.Info().Defs, func(node *Ident) bool {
+		return node.Parent().IsNodeType(NodeTypeAssignStmt) ||
+			node.Parent().IsNodeType(NodeTypeValueSpec)
+	})
+}
+
+func (s *baseNode) findIdents(search map[*ast.Ident]types.Object, f func(node *Ident) bool) []*Ident {
+	var decls []*Ident
+	for astIdent := range search {
+		node := s.findChildByAstNode(astIdent)
+		if node == nil {
+			continue
+		}
+		ident := node.(*Ident)
+		if ident.Name == "_" || !f(ident) {
+			continue
+		}
+		decls = append(decls, ident)
+	}
+	return decls
+}
+
+// FindUsages finds usages of given declaration
+func (s *baseNode) FindUsages(declaration *Ident) []*Ident {
+	usgs := s.findIdents(s.Info().Uses, func(node *Ident) bool {
+		return node.Name == declaration.Name
+	})
+	otherDecls := s.findIdents(s.Info().Defs, func(node *Ident) bool {
+		_, scope := declaration.GetScope()
+		return node.Name == declaration.Name && scope.Contains(node.Pos()) && node.Pos() != declaration.AstNode().Pos()
+	})
+
+	var usages []*Ident
+	_, scope := declaration.GetScope()
+	for _, usg := range usgs {
+		if !scope.Contains(usg.Pos()) {
+			continue
+		}
+
+		var found bool
+		for _, otherDecl := range otherDecls {
+			_, scope := otherDecl.GetScope()
+			if scope.Contains(usg.Pos()) {
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+
+		usages = append(usages, usg)
+	}
+	return usages
+}
+
+// GetScope returns the scope of the node
+func (s *baseNode) GetScope() (Node, *types.Scope) {
+	var (
+		maxScopePos token.Pos
+		maxNode     ast.Node
+		maxScope    *types.Scope
+	)
+	for node, scope := range s.Info().Scopes {
+		if scope.Contains(s.node.Pos()) && maxScopePos < scope.Pos() {
+			maxScopePos = scope.Pos()
+			maxScope = scope
+			maxNode = node
+		}
+	}
+	return s.Pkg().findChildByAstNode(maxNode), maxScope
+}
+
 // IsValueType checks if value type is of given type
 func (s *baseNode) IsValueType(valType string) bool {
 	if expr, ok := s.node.(ast.Expr); ok {
@@ -441,12 +535,9 @@ func (s *baseNode) getRawFile(node ast.Node) *RawFile {
 }
 
 func (s *baseNode) findChildByAstNode(astNode ast.Node) Node {
-	for _, node := range s.Children() {
-		if node.AstNode() == astNode {
-			return node
-		}
-	}
-	return nil
+	return s.TreeNode(func(n Node) bool {
+		return n.AstNode() == astNode
+	})
 }
 
 // ChildNodes walks only child nodes collecting all nodes that meet the condition
