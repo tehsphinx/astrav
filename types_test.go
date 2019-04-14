@@ -23,7 +23,7 @@ func TestParseInfo(t *testing.T) {
 			return true
 		}
 		node := n.(*Ident)
-		if node.NodeName().String() != "name" {
+		if node.NodeName() != "name" {
 			return true
 		}
 		assert.Equal(t, nameType, node.Object().Type())

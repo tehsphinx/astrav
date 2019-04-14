@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"math"
 	"reflect"
 	"regexp"
 	"strings"
@@ -210,8 +211,7 @@ func (s *baseNode) FindByName(name string) []Node {
 			return false
 		}
 
-		ident := f.NodeName()
-		return ident != nil && ident.Name == name
+		return f.NodeName() == name
 	})
 }
 
@@ -223,8 +223,7 @@ func (s *baseNode) FindNameInCallTree(name string) []Node {
 			return false
 		}
 
-		ident := f.NodeName()
-		return ident != nil && ident.Name == name
+		return f.NodeName() == name
 	})
 }
 
@@ -236,8 +235,7 @@ func (s *baseNode) FindFirstByName(name string) Node {
 			return false
 		}
 
-		ident := f.NodeName()
-		return ident != nil && ident.Name == name
+		return f.NodeName() == name
 	})
 }
 
@@ -284,8 +282,7 @@ func (s *baseNode) ChildByName(name string) Node {
 			return false
 		}
 
-		ident := f.NodeName()
-		return ident != nil && ident.Name == name
+		return f.NodeName() == name
 	})
 }
 
@@ -417,6 +414,23 @@ func (s *baseNode) FindUsages(declaration *Ident) []*Ident {
 		usages = append(usages, usg)
 	}
 	return usages
+}
+
+// FindFirstUsage selects the first usage
+func (s *baseNode) FindFirstUsage(declaration *Ident) *Ident {
+	usgs := s.FindUsages(declaration)
+
+	var (
+		firstUsage *Ident
+		minPos     token.Pos = math.MaxInt32
+	)
+	for _, usage := range usgs {
+		if usage.NamePos < minPos {
+			minPos = usage.NamePos
+			firstUsage = usage
+		}
+	}
+	return firstUsage
 }
 
 // GetScope returns the scope of the node

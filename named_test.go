@@ -18,7 +18,7 @@ func TestFuncDecl_NodeName(t *testing.T) {
 		named, ok := node.(Named)
 		assert.Equal(t, true, ok)
 
-		assert.NotNil(t, named.NodeName())
+		assert.NotEmpty(t, named.NodeName())
 		found = true
 		return true
 	})
@@ -38,7 +38,7 @@ func TestFile_NodeName(t *testing.T) {
 		named, ok := node.(Named)
 		assert.Equal(t, true, ok)
 
-		assert.NotNil(t, named.NodeName())
+		assert.NotEmpty(t, named.NodeName())
 		found = true
 		return true
 	})
@@ -58,7 +58,7 @@ func TestIdent_NodeName(t *testing.T) {
 		named, ok := node.(Named)
 		assert.Equal(t, true, ok)
 
-		assert.NotNil(t, named.NodeName())
+		assert.NotEmpty(t, named.NodeName())
 		found = true
 		return true
 	})
@@ -78,7 +78,7 @@ func TestImportSpec_NodeName(t *testing.T) {
 		named, ok := node.(Named)
 		assert.Equal(t, true, ok)
 
-		assert.Nil(t, named.NodeName())
+		assert.Empty(t, named.NodeName())
 		found = true
 		return true
 	})
@@ -98,7 +98,7 @@ func TestSelectorExpr_NodeName(t *testing.T) {
 		named, ok := node.(Named)
 		assert.Equal(t, true, ok)
 
-		assert.NotNil(t, named.NodeName())
+		assert.NotEmpty(t, named.NodeName())
 		found = true
 		return true
 	})

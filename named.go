@@ -1,96 +1,84 @@
 package astrav
 
-import (
-	"go/ast"
-)
-
 // Named provides an interface for nodes with a name
 type Named interface {
 	// NodeName returns the name of the node
-	NodeName() *Ident
+	NodeName() string
 }
 
-// NodeName returns the name of the node
-func (s *FuncDecl) NodeName() *Ident {
-	if s.Name == nil {
-		return nil
+func getIdentName(s Identifier) string {
+	ident := s.GetIdent()
+	if ident == nil {
+		return ""
 	}
-
-	return s.findChildByAstNode(s.Name).(*Ident)
+	return ident.Name
 }
 
 // NodeName returns the name of the node
-func (s *LabeledStmt) NodeName() *Ident {
-	if s.Label == nil {
-		return nil
+func (s *FuncDecl) NodeName() string {
+	return getIdentName(s)
+}
+
+// NodeName returns the name of the node
+func (s *LabeledStmt) NodeName() string {
+	return getIdentName(s)
+}
+
+// NodeName returns the name of the node
+func (s *BranchStmt) NodeName() string {
+	return getIdentName(s)
+}
+
+// NodeName returns the name of the node
+func (s *ImportSpec) NodeName() string {
+	return getIdentName(s)
+}
+
+// NodeName returns the name of the node
+func (s *File) NodeName() string {
+	return getIdentName(s)
+}
+
+// NodeName returns the name of the node
+func (s *SelectorExpr) NodeName() string {
+	name := getIdentName(s)
+	if sel := s.findChildByAstNode(s.X); sel != nil && sel.IsNodeType(NodeTypeIdent) {
+		return sel.(*Ident).NodeName() + "." + name
 	}
-	return s.findChildByAstNode(s.Label).(*Ident)
+	return name
 }
 
 // NodeName returns the name of the node
-func (s *BranchStmt) NodeName() *Ident {
-	if s.Label == nil {
-		return nil
-	}
-	return s.findChildByAstNode(s.Label).(*Ident)
+func (s *TypeSpec) NodeName() string {
+	return getIdentName(s)
 }
 
 // NodeName returns the name of the node
-func (s *ImportSpec) NodeName() *Ident {
-	if s.Name == nil {
-		return nil
-	}
-	return s.findChildByAstNode(s.Name).(*Ident)
-}
-
-// NodeName returns the name of the node
-func (s *File) NodeName() *Ident {
-	if s.Name == nil {
-		return nil
-	}
-	return s.findChildByAstNode(s.Name).(*Ident)
-}
-
-// NodeName returns the name of the node
-func (s *SelectorExpr) NodeName() *Ident {
-	if s.Sel == nil {
-		return nil
-	}
-	return s.findChildByAstNode(s.Sel).(*Ident)
-}
-
-// NodeName returns the name of the node
-func (s *TypeSpec) NodeName() *Ident {
-	if s.Name == nil {
-		return nil
-	}
-	return s.findChildByAstNode(s.Name).(*Ident)
-}
-
-// NodeName returns the name of the node
-func (s *CallExpr) NodeName() *Ident {
+func (s *CallExpr) NodeName() string {
 	if s.Fun == nil {
-		return nil
+		return ""
 	}
-	switch t := s.Fun.(type) {
-	case *ast.Ident:
-		return s.findChildByAstNode(t).(*Ident)
-	case *ast.ArrayType:
-		// node does not exist yet
-		return newChild(t.Elt, s.realMe, s.pkg, s.level).(*Ident)
+
+	node := s.findChildByAstNode(s.Fun)
+	switch t := node.(type) {
+	case *ArrayType:
+		return t.NodeName()
 	}
-	return nil
+
+	return getIdentName(s)
 }
 
 // NodeName returns the name of the node
-func (s *Ident) NodeName() *Ident {
-	return s
+func (s *Ident) NodeName() string {
+	return getIdentName(s)
 }
 
 // NodeName returns the name of the node
-func (s *Field) NodeName() *Ident {
-	if len(s.Names) == 0 {
-		return nil
-	}
-	return s.findChildByAstNode(s.Names[0]).(*Ident)
+func (s *Field) NodeName() string {
+	return getIdentName(s)
+}
+
+// NodeName returns the name of the node
+func (s *ArrayType) NodeName() string {
+	return "[]" + getIdentName(s)
 }

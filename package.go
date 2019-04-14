@@ -34,7 +34,7 @@ func (s *Package) FuncDeclByName(name string) *FuncDecl {
 
 // FuncDeclbyCallExpr returns a function declaration from its usage
 func (s *Package) FuncDeclbyCallExpr(node *CallExpr) *FuncDecl {
-	ident := node.NodeName()
+	ident := node.GetIdent()
 	if ident == nil {
 		return nil
 	}
@@ -61,7 +61,7 @@ func (s *Package) fill() {
 
 	s.Walk(func(node Node) bool {
 		if n, ok := node.(*FuncDecl); ok {
-			ident := n.NodeName()
+			ident := n.GetIdent()
 			if ident == nil {
 				return true
 			}
