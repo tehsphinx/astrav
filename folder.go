@@ -7,6 +7,7 @@ import (
 	"go/types"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -69,6 +70,9 @@ func (s *Folder) GetRawFiles() map[string][]byte {
 
 // GetPath returns the pkg import path.
 func (s *Folder) GetPath() string {
+	if dir, ok := s.root.(http.Dir); ok {
+		return path.Join(string(dir), s.dir)
+	}
 	return s.dir
 }
 

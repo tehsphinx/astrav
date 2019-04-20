@@ -60,8 +60,7 @@ func (s *CallExpr) NodeName() string {
 	}
 
 	node := s.findChildByAstNode(s.Fun)
-	switch t := node.(type) {
-	case *ArrayType:
+	if t, ok := node.(*ArrayType); ok {
 		return t.NodeName()
 	}
 

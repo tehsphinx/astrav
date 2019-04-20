@@ -147,10 +147,10 @@ func TestBaseNode_FindFirstByName(t *testing.T) {
 	n := getTree(t, 1)
 
 	f := n.FindFirstByName("Score")
-	assert.Equal(t, "Score", f.(*FuncDecl).Name.Name)
+	assert.Equal(t, "Score", f.(Named).NodeName())
 
-	f = n.FindFirstByName("ToLower")
-	assert.Equal(t, "ToLower", f.(*SelectorExpr).Sel.Name)
+	f = n.FindFirstByName("strings.ToLower")
+	assert.Equal(t, "strings.ToLower", f.(Named).NodeName())
 }
 
 func TestBaseNode_IsType(t *testing.T) {
@@ -180,11 +180,11 @@ func TestBaseNode_FindByName(t *testing.T) {
 
 	fns := n.FindByName("Score")
 	assert.Equal(t, 2, len(fns))
-	assert.Equal(t, "Score", fns[0].(*FuncDecl).Name.Name)
+	assert.Equal(t, "Score", fns[0].(Named).NodeName())
 
-	fns = n.FindByName("ToLower")
-	assert.Equal(t, 2, len(fns))
-	assert.Equal(t, "ToLower", fns[0].(*SelectorExpr).Sel.Name)
+	fns = n.FindByName("strings.ToLower")
+	assert.Equal(t, 1, len(fns))
+	assert.Equal(t, "strings.ToLower", fns[0].(Named).NodeName())
 
 	fns = n.FindFirstByName("Score").FindByName("c")
 	assert.Equal(t, 2, len(fns))
@@ -358,6 +358,13 @@ func TestBaseNode_Scope(t *testing.T) {
 	node = pkg.FindFirstByName("x")
 	scopeNode, _ = node.GetScope()
 	assert.Equal(t, NodeTypeFile, scopeNode.NodeType())
+}
+
+func TestBaseNode_FindMaps(t *testing.T) {
+	pkg := getPackage(t, 8)
+	fn := pkg.FindFirstByName("Score")
+	maps := fn.FindMaps()
+	assert.Equal(t, 3, len(maps))
 }
 
 func getTree(t *testing.T, example int) Node {

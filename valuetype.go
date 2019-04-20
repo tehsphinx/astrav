@@ -10,44 +10,43 @@ type ValueTyper interface {
 	ValueType() types.Type
 }
 
-// ValueType returns the value type of the node.
-func (s *Field) ValueType() types.Type {
-	if s.Type == nil {
+func (s *baseNode) getType(node ast.Node) types.Type {
+	if node == nil {
 		return nil
 	}
-	return s.Info().ObjectOf(s.Type.(*ast.Ident)).Type()
+	ident, ok := node.(*ast.Ident)
+	if !ok {
+		return nil
+	}
+	return s.Info().ObjectOf(ident).Type()
+}
+
+// ValueType returns the value type of the node.
+func (s *Field) ValueType() types.Type {
+	return s.getType(s.Type)
 }
 
 // ValueType returns the value type of the node.
 func (s *CompositeLit) ValueType() types.Type {
-	if s.Type == nil {
-		return nil
-	}
-	return s.Info().ObjectOf(s.Type.(*ast.Ident)).Type()
+	return s.getType(s.Type)
 }
 
 // ValueType returns the value type of the node.
 func (s *TypeAssertExpr) ValueType() types.Type {
-	if s.Type == nil {
-		return nil
-	}
-	return s.Info().ObjectOf(s.Type.(*ast.Ident)).Type()
+	return s.getType(s.Type)
+
 }
 
 // ValueType returns the value type of the node.
 func (s *ValueSpec) ValueType() types.Type {
-	if s.Type == nil {
-		return nil
-	}
-	return s.Info().ObjectOf(s.Type.(*ast.Ident)).Type()
+	return s.getType(s.Type)
+
 }
 
 // ValueType returns the value type of the node.
 func (s *TypeSpec) ValueType() types.Type {
-	if s.Type == nil {
-		return nil
-	}
-	return s.Info().ObjectOf(s.Type.(*ast.Ident)).Type()
+	return s.getType(s.Type)
+
 }
 
 // ValueType returns the value type of the node.
@@ -56,5 +55,5 @@ func (s *Ident) ValueType() types.Type {
 		return t
 	}
 
-	return s.Info().ObjectOf(s.node.(*ast.Ident)).Type()
+	return s.getType(s.node)
 }
