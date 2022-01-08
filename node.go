@@ -78,6 +78,7 @@ type Node interface {
 	FindDeclarations() []*Ident
 	FindDeclarationsByType(nodeType NodeType) []*Ident
 	FindVarDeclarations() []*Ident
+	FindDeclaration(usage *Ident) *Ident
 	FindUsages(*Ident) []*Ident
 
 	ChildNodes(cond func(n Node) bool) []Node
@@ -364,6 +365,34 @@ func (s *baseNode) FindVarDeclarations() []*Ident {
 		return node.Parent().IsNodeType(NodeTypeAssignStmt) ||
 			node.Parent().IsNodeType(NodeTypeValueSpec)
 	})
+}
+
+// FindDeclaration finds the declaration for a usage
+func (s *baseNode) FindDeclaration(usage *Ident) *Ident {
+	decls := s.findIdents(s.Info().Defs, func(node *Ident) bool {
+		return node.Name == usage.Name
+	})
+	if len(decls) == 1 {
+		return decls[0]
+	}
+
+	var (
+		correctDecl  *Ident
+		correctScope *types.Scope
+	)
+	for _, decl := range decls {
+		scopeNode, scope := decl.GetScope()
+		if !scope.Contains(usage.Pos()) {
+			continue
+		}
+		if correctDecl != nil && correctScope != nil && !correctScope.Contains(scopeNode.Pos()) {
+			continue
+		}
+		correctDecl = decl
+		correctScope = scope
+	}
+
+	return correctDecl
 }
 
 func (s *baseNode) findIdents(search map[*ast.Ident]types.Object, f func(node *Ident) bool) []*Ident {

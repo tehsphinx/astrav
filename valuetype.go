@@ -18,6 +18,10 @@ func (s *baseNode) getType(node ast.Node) types.Type {
 	if !ok {
 		return nil
 	}
+	obj := s.Info().ObjectOf(ident)
+	if obj == nil {
+		return nil
+	}
 	return s.Info().ObjectOf(ident).Type()
 }
 

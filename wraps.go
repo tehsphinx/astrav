@@ -110,6 +110,11 @@ type CallExpr struct {
 	baseNode
 }
 
+// SelExpr returns the SelectorExpr for the function.
+func (s *CallExpr) SelExpr() Node {
+	return s.findChildByAstNode(s.node.(*ast.CallExpr).Fun)
+}
+
 // StarExpr wraps ast.StarExpr
 type StarExpr struct {
 	*ast.StarExpr
@@ -296,6 +301,38 @@ type BlockStmt struct {
 type IfStmt struct {
 	*ast.IfStmt
 	baseNode
+}
+
+// Init returns the init node of the if statement
+func (s *IfStmt) Init() Node {
+	if s.IfStmt.Init == nil {
+		return nil
+	}
+	return s.findChildByAstNode(s.IfStmt.Init)
+}
+
+// Cond returns the condition node of the if statement
+func (s *IfStmt) Cond() Node {
+	if s.IfStmt.Cond == nil {
+		return nil
+	}
+	return s.findChildByAstNode(s.IfStmt.Cond)
+}
+
+// Body returns the body node of the if statement
+func (s *IfStmt) Body() Node {
+	if s.IfStmt.Body == nil {
+		return nil
+	}
+	return s.findChildByAstNode(s.IfStmt.Body)
+}
+
+// Else returns the else node of the if statement
+func (s *IfStmt) Else() Node {
+	if s.IfStmt.Else == nil {
+		return nil
+	}
+	return s.findChildByAstNode(s.IfStmt.Else)
 }
 
 // CaseClause wraps ast.CaseClause

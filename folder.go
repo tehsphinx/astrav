@@ -35,10 +35,15 @@ type Folder struct {
 }
 
 // ParseFolder will parse all to files in folder. It skips test files.
-func (s *Folder) ParseFolder() (map[string]*Package, error) {
-	pkgs, fileSources, err := Parse(s.FSet, s.root, s.dir, func(info os.FileInfo) bool {
+func (s *Folder) ParseFolder(filterFuncs ...func(info os.FileInfo) bool) (map[string]*Package, error) {
+	filterFunc := func(info os.FileInfo) bool {
 		return !strings.HasSuffix(info.Name(), "_test.go")
-	}, parser.AllErrors+parser.ParseComments)
+	}
+	if len(filterFuncs) != 0 {
+		filterFunc = filterFuncs[0]
+	}
+
+	pkgs, fileSources, err := Parse(s.FSet, s.root, s.dir, filterFunc, parser.AllErrors+parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}

@@ -15,6 +15,11 @@ func getIdentName(s Identifier) string {
 }
 
 // NodeName returns the name of the node
+func (s *Package) NodeName() string {
+	return s.Name
+}
+
+// NodeName returns the name of the node
 func (s *FuncDecl) NodeName() string {
 	return getIdentName(s)
 }

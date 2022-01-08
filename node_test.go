@@ -347,6 +347,18 @@ func TestBaseNode_FindUsages(t *testing.T) {
 	}
 }
 
+func TestBaseNode_FindDeclaration(t *testing.T) {
+	n := getPackage(t, 7)
+	decls := n.FindVarDeclarations()
+	for _, decl := range decls {
+		usages := n.FindUsages(decl)
+		for _, usage := range usages {
+			gotDecl := n.FindDeclaration(usage)
+			assert.Equal(t, decl, gotDecl)
+		}
+	}
+}
+
 func TestBaseNode_Scope(t *testing.T) {
 	pkg := getPackage(t, 7)
 
