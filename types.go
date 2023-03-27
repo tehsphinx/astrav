@@ -10,7 +10,7 @@ import (
 )
 
 // ParseInfo parses all files for type information which is then available
-// from the Nodes. When using Folder.ParseFolder, this is done automatically.
+// from the Nodes. When using Module.ParseFolder, this is done automatically.
 func (s *Folder) ParseInfo(path string, fSet *token.FileSet, files []*ast.File) (*types.Package, error) {
 	s.Info = &types.Info{
 		Types:      map[ast.Expr]types.TypeAndValue{},

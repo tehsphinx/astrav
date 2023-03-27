@@ -2,7 +2,11 @@ package astrav
 
 import (
 	"go/ast"
+	"go/token"
 	"go/types"
+	"math"
+
+	"golang.org/x/tools/go/packages"
 )
 
 // Package wraps ast.Package
@@ -13,6 +17,8 @@ type Package struct {
 	rawFiles map[string]*RawFile
 	defs     map[*Ident]Node
 	info     *types.Info
+	typesPkg *types.Package
+	pack     *packages.Package
 
 	filled bool
 }
@@ -70,4 +76,32 @@ func (s *Package) fill() {
 
 		return true
 	})
+}
+
+// // Pos returns the position of the package.
+// func (s *Package) Pos() token.Pos {
+// 	s.node.(*ast.Package).Pos()
+// 	return s.pack.Types.Scope().Pos()
+// }
+
+// GetScope returns custom scope.
+func (s *Package) GetScope() (Node, *types.Scope) {
+	minPos, maxPos := 0, 0
+	if len(s.rawFiles) != 0 {
+		minPos, maxPos = math.MaxInt, 0
+	}
+
+	for _, file := range s.rawFiles {
+		pos := file.Base()
+		end := pos + file.Size()
+
+		if pos < minPos {
+			minPos = pos
+		}
+		if maxPos < end {
+			maxPos = end
+		}
+	}
+	scope := types.NewScope(nil, token.Pos(minPos), token.Pos(maxPos), "")
+	return s, scope
 }

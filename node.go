@@ -49,10 +49,12 @@ type Node interface {
 	IsValueType(valType string) bool
 	ValueType() types.Type
 	Object() types.Object
+	Pkg() *Package
 	Info() *types.Info
 	Walk(f func(node Node) bool)
 
 	GetScope() (Node, *types.Scope)
+	FindByPos(pos token.Pos) (Node, bool)
 	Parent() Node
 	Parents() []Node
 	NextParentByType(nodeType NodeType) Node
@@ -108,6 +110,9 @@ type baseNode struct {
 
 	nodeType NodeType
 	rawFile  *RawFile
+
+	usageCache map[*Ident][]*Ident
+	declCache  map[*Ident]*Ident
 }
 
 // Parent return the parent node
@@ -369,6 +374,10 @@ func (s *baseNode) FindVarDeclarations() []*Ident {
 
 // FindDeclaration finds the declaration for a usage
 func (s *baseNode) FindDeclaration(usage *Ident) *Ident {
+	if decl, ok := s.cachedDeclaration(usage); ok {
+		return decl
+	}
+
 	decls := s.findIdents(s.Info().Defs, func(node *Ident) bool {
 		return node.Name == usage.Name
 	})
@@ -392,7 +401,25 @@ func (s *baseNode) FindDeclaration(usage *Ident) *Ident {
 		correctScope = scope
 	}
 
+	s.cacheDeclaration(usage, correctDecl)
 	return correctDecl
+}
+
+func (s *baseNode) cachedDeclaration(usage *Ident) (*Ident, bool) {
+	if s.declCache == nil {
+		return nil, false
+	}
+
+	decl, ok := s.declCache[usage]
+	return decl, ok
+}
+
+func (s *baseNode) cacheDeclaration(usage *Ident, decl *Ident) {
+	if s.declCache == nil {
+		s.declCache = map[*Ident]*Ident{}
+	}
+
+	s.declCache[usage] = decl
 }
 
 func (s *baseNode) findIdents(search map[*ast.Ident]types.Object, f func(node *Ident) bool) []*Ident {
@@ -413,6 +440,10 @@ func (s *baseNode) findIdents(search map[*ast.Ident]types.Object, f func(node *I
 
 // FindUsages finds usages of given declaration
 func (s *baseNode) FindUsages(declaration *Ident) []*Ident {
+	if usages, ok := s.cachedUsages(declaration); ok {
+		return usages
+	}
+
 	usgs := s.findIdents(s.Info().Uses, func(node *Ident) bool {
 		return node.Name == declaration.Name
 	})
@@ -442,7 +473,26 @@ func (s *baseNode) FindUsages(declaration *Ident) []*Ident {
 
 		usages = append(usages, usg)
 	}
+
+	s.cacheUsages(declaration, usages)
 	return usages
+}
+
+func (s *baseNode) cachedUsages(declaration *Ident) ([]*Ident, bool) {
+	if s.usageCache == nil {
+		return nil, false
+	}
+
+	usages, ok := s.usageCache[declaration]
+	return usages, ok
+}
+
+func (s *baseNode) cacheUsages(declaration *Ident, usages []*Ident) {
+	if s.usageCache == nil {
+		s.usageCache = map[*Ident][]*Ident{}
+	}
+
+	s.usageCache[declaration] = usages
 }
 
 // FindFirstUsage selects the first usage
@@ -470,13 +520,55 @@ func (s *baseNode) GetScope() (Node, *types.Scope) {
 		maxScope    *types.Scope
 	)
 	for node, scope := range s.Info().Scopes {
-		if scope.Contains(s.node.Pos()) && maxScopePos < scope.Pos() {
+		if scope.Contains(s.realMe.Pos()) && maxScopePos < scope.Pos() {
 			maxScopePos = scope.Pos()
 			maxScope = scope
 			maxNode = node
 		}
 	}
 	return s.Pkg().findChildByAstNode(maxNode), maxScope
+}
+
+// FindByPos finds a node by the given position. If there is no exact match, the closest node
+// before the position is returned.
+func (s *baseNode) FindByPos(pos token.Pos) (Node, bool) {
+	_, scope := s.realMe.GetScope()
+	if scope == nil {
+		return nil, false
+	}
+	if !scope.Contains(pos) {
+		return nil, false
+	}
+
+	const maxDiff = 50
+	var (
+		minDiff = maxDiff
+		retNode Node
+	)
+
+	s.Walk(func(node Node) bool {
+		if node == nil {
+			return true
+		}
+
+		if pos == node.Pos() {
+			retNode = node
+			return false
+		}
+
+		diff := int(pos - node.Pos())
+		if 0 <= diff && diff < maxDiff {
+			if diff < minDiff {
+				retNode = node
+			}
+		}
+		return true
+	})
+
+	if retNode == nil {
+		return nil, false
+	}
+	return retNode, true
 }
 
 // IsValueType checks if value type is of given type

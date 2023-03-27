@@ -115,6 +115,15 @@ func (s *CallExpr) SelExpr() Node {
 	return s.findChildByAstNode(s.node.(*ast.CallExpr).Fun)
 }
 
+// Args returns the Arguments for the function.
+func (s *CallExpr) Args() []Node {
+	var nodes []Node
+	for _, arg := range s.node.(*ast.CallExpr).Args {
+		nodes = append(nodes, s.findChildByAstNode(arg))
+	}
+	return nodes
+}
+
 // StarExpr wraps ast.StarExpr
 type StarExpr struct {
 	*ast.StarExpr
