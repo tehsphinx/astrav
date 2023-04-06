@@ -61,7 +61,7 @@ func (s *Module) Load(filterFns ...func(d fs.DirEntry) bool) error {
 		return err
 	}
 
-	if r := s.loadPackages(paths); r != nil {
+	if r := s.loadPackages(s.dir, paths); r != nil {
 		return r
 	}
 
@@ -123,10 +123,10 @@ func (s *Module) processPackages() error {
 	return nil
 }
 
-func (s *Module) loadPackages(paths []string) error {
+func (s *Module) loadPackages(repoRoot string, paths []string) error {
 	s.FSet = token.NewFileSet()
 	packs, err := packages.Load(&packages.Config{
-		Dir: "/Users/gabriel.nelle/repos/gostudent/go-backend/db-user-service",
+		Dir: repoRoot,
 		Mode: packages.NeedName | packages.NeedFiles | packages.NeedCompiledGoFiles | packages.NeedImports |
 			packages.NeedTypes | packages.NeedTypesSizes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedDeps,
 		BuildFlags: build.Default.BuildTags,
